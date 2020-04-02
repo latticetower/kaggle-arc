@@ -28,9 +28,13 @@ class ZerosPredictor(Predictor):
     def predict(self, field):
         if isinstance(field, IOData):
             return self.predict(field.input_field)
-        return Field(np.zeros((field.height, field.width)))
+        return field.zeros()
 
-class OnesPredictor(Predictor):
+
+class ConstPredictor(Predictor):
+    def __init__(self, value=1, multiplier=1):
+        self.value = value
+        self.multiplier = multiplier
 
     def train(self, iodata_list):
         pass
@@ -38,4 +42,4 @@ class OnesPredictor(Predictor):
     def predict(self, field):
         if isinstance(field, IOData):
             return self.predict(field.input_field)
-        return Field(np.ones((field.height, field.width)))
+        return field.consts(self.value, multiplier=self.multiplier)

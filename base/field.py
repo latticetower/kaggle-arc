@@ -70,7 +70,16 @@ class Field:
 
     def __repr__(self):
         return "".join(self.str_iter())
-    
+
+    def zeros(self, multiplier=1):
+        return self.consts(value=0, multiplier=multiplier)
+
+    def consts(self, value=1, multiplier=1):
+        print(tuple([ x * multiplier for x in self.data.shape]))
+        return Field(
+            value*np.ones(tuple([ x * multiplier for x in self.data.shape]),
+                dtype=self.data.dtype))
+
     @staticmethod
     def fromstring(s):
         assert s[0] == "|"
