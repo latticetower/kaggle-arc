@@ -1,4 +1,4 @@
-from utils.field import *
+from base.field import *
 
 
 class IOData:
@@ -15,7 +15,9 @@ class IOData:
     def show(self):
         fig, axes = plt.subplots(nrows=1, ncols=2)
         ax0, ax1 = axes
-        self.input_field.show(ax0, label="input")
-        self.output_field.show(ax1, label="output")
+        if self.input_field is not None:
+            self.input_field.show(ax0, label="input")
+        if self.output_field is not None:
+            self.output_field.show(ax1, label="output")
         ax0.axis("off")
         ax1.axis("off")

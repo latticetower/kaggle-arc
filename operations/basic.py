@@ -1,3 +1,7 @@
+import numpy as np
+
+from base.field import Field
+
 class Operation:
     def __call__(self, field):
         pass

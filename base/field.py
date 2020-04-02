@@ -60,3 +60,21 @@ class Field:
     @classmethod
     def distance(cls, a, b):
         return 1 - cls.dice(a, b)
+
+    def str_iter(self):
+        yield "|"
+        for line in self.data:
+            for x in line:
+                yield str(x)
+            yield "|"
+
+    def __repr__(self):
+        return "".join(self.str_iter())
+    
+    @staticmethod
+    def fromstring(s):
+        assert s[0] == "|"
+        data = [
+            [ int(x) for x in line ]
+            for line in s[1:-1].split("|") ]
+        return Field(data)
