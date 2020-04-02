@@ -1,0 +1,62 @@
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def binary_dice(a, b):
+    s = (np.sum(a) + np.sum(b))
+    if s != 0:
+        return 2*np.sum(a*b)/s
+    return None
+
+
+def multiclass_dice(a, b, c):
+    return binary_dice(1*(a == c), 1*(b==c))
+
+
+class Field:
+    def __init__(self, data):
+        self.height = len(data)
+        self.width = len(data[0])
+        self.data = np.asarray(data)
+        self.multiplier=0.5
+
+    def __eq__(self, b):
+        if not isinstance(b, Field):
+            return self.data == b
+        if not (self.height == b.height and self.width==b.width):
+            return False
+        return np.all(self.data == b.data)
+
+    def __ne__(self, b):
+        #if not isinstance(b, Field):
+        #    return self.data != b
+        return ~(self==b)
+
+    def __repr__(self):
+        return repr(self.data)
+
+    def show(self, ax=None, label=None):
+        if ax is None:
+            plt.figure(figsize=(self.width*self.multiplier, self.height*self.multiplier))
+            ax = plt.gca()
+        ax.imshow(self.data)
+        if label is not None:
+            ax.set_title(label)
+        plt.axis("off")
+
+    @staticmethod
+    def compare_length(a, b):
+        return a.width == b.width and a.height == b.height
+
+    @staticmethod
+    def dice(a, b):
+        dist = [
+            multiclass_dice(a, b, i)
+            for i in range(10)]
+        dist = [d for d in dist if d is not None]
+        return np.mean(dist)
+
+    @classmethod
+    def distance(cls, a, b):
+        return 1 - cls.dice(a, b)
