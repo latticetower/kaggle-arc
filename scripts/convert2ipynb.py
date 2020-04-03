@@ -46,9 +46,10 @@ def filter_imports(lines):
 
 def filter_local(ids, local_dirs=[], basedir=".."):
     result = dict()
+
     for k, v in ids.items():
-        s = v.split(".")[0]
-        if not (s in local_dirs or s + ".py" in local_dirs):
+        s = os.path.join(basedir, v.replace(".", os.sep))
+        if not (s + ".py" in local_dirs):
             continue
         path = os.path.join(basedir, v.replace(".", os.sep))
         if os.path.exists(path + ".py"):
@@ -58,24 +59,18 @@ def filter_local(ids, local_dirs=[], basedir=".."):
     return result
     
 
-def walk_deps(filename, processed=set()):
+def walk_deps(filename, processed=set(), basedir=".."):
     with open(filename) as f:
         lines = f.readlines()
-    basedir = os.path.dirname(filename)
-    if basedir == "":
-        basedir = "."
-    local_dirs = [
-        x for x in os.listdir(basedir)
-        if not x.startswith(".") and os.path.isdir(os.path.join(basedir, x))
-    ]
-    local_files = [
-        x for x in os.listdir(basedir)
-        if not x.startswith(".") and os.path.splitext(x)[-1]==".py"
-    ]
+    local_dirs = [ 
+        os.path.join(base, f) for base, dirs, files in os.walk(basedir)
+        for f in files
+        if os.path.splitext(f)[-1]==".py"]
+
     #print(local_files)
 
-    ids = filter_local(filter_imports(lines), local_dirs=local_dirs + local_files, basedir=basedir)
-    ids_={ k: (package, path) 
+    ids = filter_local(filter_imports(lines), local_dirs=local_dirs, basedir=basedir)
+    ids_ = { k: (package, path) 
         for k, (package, path) in ids.items()
         if not path in processed}
     #if len(ids_) < 1:
@@ -95,12 +90,12 @@ def walk_deps(filename, processed=set()):
             yield w
 
 
-def make_graph(start_file="../runner.py"):
+def make_graph(start_file="../scripts/runner.py", basedir=".."):
     data = []
     nodes = dict()
     node_names = []
     G = nx.DiGraph()
-    for file, lines, deps in walk_deps(start_file):
+    for file, lines, deps in walk_deps(start_file, basedir=basedir):
         dependencies = set([dep for i, (package, dep) in deps.items()])
         if file not in nodes:
             nodes[file] = len(nodes)
@@ -123,8 +118,8 @@ def make_graph(start_file="../runner.py"):
 
 
 class DepGraph:
-    def __init__(self, mainpy):
-        self.graph = make_graph(mainpy)
+    def __init__(self, mainpy, basedir=".."):
+        self.graph = make_graph(mainpy, basedir=basedir)
 
     def sorted_files(self):
         for i in nx.topological_sort(self.graph):
@@ -139,6 +134,7 @@ def read_file(file_path):
     with open(file_path) as f:
         lines = f.readlines()
     return lines
+
 
 def wrap2cell(data, ctype="code"):
     code_params = {
