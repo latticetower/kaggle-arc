@@ -10,10 +10,17 @@ class Predictor:
     def predict(self, field):
         pass
 
+    def predict_on(self, ds):
+        for sample in ds:
+            for i, iodata in enumerate(sample.iterate_test()):
+                prediction = self.predict(iodata)
+                yield sample.name, i, prediction
+
 
 class IdPredictor(Predictor):
     def train(self, iodata_list):
         pass
+
     def predict(self, field):
         if isinstance(field, IOData):
             return self.predict(field.input_field)

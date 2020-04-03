@@ -1,7 +1,11 @@
 import os
 import numpy as np
+import matplotlib
+try:
+    matplotlib.use("svg")
+except:
+    pass
 import matplotlib.pyplot as plt
-
 
 def binary_dice(a, b):
     s = (np.sum(a) + np.sum(b))

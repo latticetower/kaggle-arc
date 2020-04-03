@@ -1,3 +1,4 @@
+import json
 from base.field import *
 
 
@@ -21,3 +22,33 @@ class IOData:
             self.output_field.show(ax1, label="output")
         ax0.axis("off")
         ax1.axis("off")
+
+
+class Sample:
+    def __init__(self, name, path):
+        with open(path) as f:
+            data = json.load(f)
+        self.name = name
+        self._train = [
+            IOData(sample)
+            for sample in data.get('train', [])]
+        self._test = [
+            IOData(sample)
+            for sample in data.get('test', [])
+        ]
+
+    def iterate_train(self):
+        return iter(self._train)
+
+    def iterate_test(self):
+        return iter(self._test)
+
+    def predict(self, predictors):
+        predictions = []
+        for sample in self.iterate_test():
+            pred = [
+                predictor.predict(sample)
+                for predictor in predictors
+            ]
+            predictions.append(pred)
+        return predictions
