@@ -110,11 +110,12 @@ def make_graph(start_file="../runner.py"):
             node_names.append(d)
         if nodes[file] in G.nodes:
             G.nodes[nodes[file]]['lines'] = lines
+            G.nodes[nodes[file]]['name'] = file
         else:
-            G.add_node(nodes[file], lines=lines)
+            G.add_node(nodes[file], lines=lines, name=file)
         for d in dependencies:
             if not nodes[d] in G.nodes:
-                G.add_node(nodes[d])
+                G.add_node(nodes[d], name=d)
             e = (nodes[d], nodes[file])
             if not e in G.edges:
                 G.add_edge(*e)
@@ -128,9 +129,10 @@ class DepGraph:
     def sorted_files(self):
         for i in nx.topological_sort(self.graph):
             lines = self.graph.nodes[i].get('lines', [])
+            name = self.graph.nodes[i].get('name', [])
             if len(lines) < 1:
                 continue
-            yield lines
+            yield name, lines
     
 
 def read_file(file_path):
@@ -139,13 +141,18 @@ def read_file(file_path):
     return lines
 
 def wrap2cell(data, ctype="code"):
-    return {
-        "cell_type": ctype,
-        "execution_count": 0,
-        "metadata": {},
-        "outputs": [],
-        "source": data
+    code_params = {
+        "code": {
+            "execution_count": 0,
+            "outputs": []
         }
+    }
+    base = {
+        "cell_type": ctype,
+        "metadata": {},
+        "source": data
+    }
+    return {**base, **code_params.get(ctype, {})}
 
 
 if __name__ == "__main__":
@@ -155,7 +162,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     graph = DepGraph(args.mainpy)
-    for lines in graph.sorted_files():
+    for name, lines in graph.sorted_files():
+        TEMPLATE['cells'].append(wrap2cell([name], ctype="markdown"))
         TEMPLATE['cells'].append(wrap2cell(lines))
 
     with open(args.savepath, 'w') as f:
