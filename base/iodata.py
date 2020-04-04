@@ -37,11 +37,13 @@ class Sample:
             for sample in data.get('test', [])
         ]
 
-    def iterate_train(self):
-        return iter(self._train)
+    @property
+    def train(self):
+        return self._train
 
-    def iterate_test(self):
-        return iter(self._test)
+    @property
+    def test(self):
+        return self._test
 
     def predict(self, predictors):
         predictions = []

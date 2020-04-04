@@ -65,6 +65,10 @@ class Field:
     def distance(cls, a, b):
         return 1 - cls.dice(a, b)
 
+    @classmethod
+    def score(cls, a, b):
+        return cls.dice(a, b)
+
     def str_iter(self):
         yield "|"
         for line in self.data:
