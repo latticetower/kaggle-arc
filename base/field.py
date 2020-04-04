@@ -27,7 +27,7 @@ class Field:
 
     def __eq__(self, b):
         if not isinstance(b, Field):
-            return self.data == b
+            return self.data == b #this does all conversion magic
         if not (self.height == b.height and self.width==b.width):
             return False
         return np.all(self.data == b.data)
@@ -61,16 +61,23 @@ class Field:
         dist = [d for d in dist if d is not None]
         return np.mean(dist)
 
+    @staticmethod
+    def sized_dice(a, b):
+        if Field.compare_length(a, b):
+            return Field.dice(a, b)
+        w = min(a.width, b.width)
+        h = min(a.height, b.height)
+        d = Field.dice(Field(a.data[:w, :h]), Field(b.data[:w, :h]))
+        size_coef = 2*w*h/(a.width*a.height+b.width*b.height)
+        return size_coef*d
+
     @classmethod
     def distance(cls, a, b):
         return 1 - cls.dice(a, b)
 
     @classmethod
     def score(cls, a, b):
-        if cls.compare_length(a, b):
-            return cls.dice(a, b)
-        else:
-            return 0
+        return cls.sized_dice(a, b)
 
     def str_iter(self):
         yield "|"
