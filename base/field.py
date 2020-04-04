@@ -67,7 +67,10 @@ class Field:
 
     @classmethod
     def score(cls, a, b):
-        return cls.dice(a, b)
+        if cls.compare_length(a, b):
+            return cls.dice(a, b)
+        else:
+            return 0
 
     def str_iter(self):
         yield "|"
@@ -83,10 +86,9 @@ class Field:
         return self.consts(value=0, multiplier=multiplier)
 
     def consts(self, value=1, multiplier=1):
-        print(tuple([ x * multiplier for x in self.data.shape]))
+        new_shape = tuple([ x * multiplier for x in self.data.shape])
         return Field(
-            value*np.ones(tuple([ x * multiplier for x in self.data.shape]),
-                dtype=self.data.dtype))
+            value*np.ones(new_shape, dtype=self.data.dtype))
 
     @staticmethod
     def fromstring(s):

@@ -14,7 +14,7 @@ class Predictor:
         if isinstance(iodata_list, IOData):
             ps = islice(self.predict(iodata_list.input_field), k)
             scores = [Field.score(p, iodata_list.output_field) for p in ps]
-            return np.mean(score)
+            return np.mean(scores)
         
         scores = []
         for iodata in iodata_list:
@@ -43,21 +43,32 @@ class IdPredictor(Predictor):
 
     def predict(self, field):
         if isinstance(field, IOData):
-            return self.predict(field.input_field)
+            for v in self.predict(field.input_field):
+                yield v
+            return
         #while True:
         yield Field(field.data)
+    def __str__(self):
+        return "IdPredictor()"
 
 
 class ZerosPredictor(Predictor):
+    def __init(self):
+        pass
 
     def train(self, iodata_list):
         pass
 
     def predict(self, field):
         if isinstance(field, IOData):
-            return self.predict(field.input_field)
+            for v in self.predict(field.input_field):
+                yield v
+                return
         #while True:
         yield field.zeros()
+        
+    def __str__(self):
+        return "ZerosPredictor()"
 
 
 class ConstPredictor(Predictor):
@@ -70,6 +81,11 @@ class ConstPredictor(Predictor):
 
     def predict(self, field):
         if isinstance(field, IOData):
-            return self.predict(field.input_field)
+            for v in self.predict(field.input_field):
+                yield v
+            return
         #while True:
         yield field.consts(self.value, multiplier=self.multiplier)
+
+    def __str__(self):
+        return f"ConstPredictor(value={self.value}, multiplier={self.multiplier})"

@@ -6,8 +6,18 @@ from predictors.basic import Predictor
 class ComplexPredictor(Predictor):
     def __init__(self, predictor_classes):
         self.predictors = []
-        for cls in predictor_classes:
-            self.predictors.append(cls())
+        for data in predictor_classes:
+            if isinstance(data, tuple):
+                if len(data) == 3:
+                    cls, args, kwargs = data
+                else:
+                    cls, args = data
+                    kwargs = dict()
+            else:
+                cls = data
+                args = []
+                kwargs = dict()
+            self.predictors.append(cls(*args, **kwargs))
         #self.classes = predictor_classes
         #pass
 
