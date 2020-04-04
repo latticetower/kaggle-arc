@@ -51,7 +51,7 @@ def filter_imports(lines, debug=False):
     return ids
 
 
-def filter_local(ids, local_dirs=[], basedir="..", debug=True):
+def filter_local(ids, local_dirs=[], basedir="..", debug=False):
     result = dict()
 
     for k, v in ids.items():
@@ -67,7 +67,7 @@ def filter_local(ids, local_dirs=[], basedir="..", debug=True):
     return result
     
 
-def walk_deps(filename, processed=set(), local_dirs=[], basedir="..", debug=True):
+def walk_deps(filename, processed=set(), local_dirs=[], basedir="..", debug=False):
     with open(filename) as f:
         lines = f.readlines()
     # local_dirs = [ 
@@ -78,7 +78,7 @@ def walk_deps(filename, processed=set(), local_dirs=[], basedir="..", debug=True
     #print(local_files)
 
     ids = filter_local(
-        filter_imports(lines, debug=True),
+        filter_imports(lines, debug=debug),
         local_dirs=local_dirs, basedir=basedir, debug=debug)
     ids_ = { k: (package, path) 
         for k, (package, path) in ids.items()
@@ -114,7 +114,7 @@ def make_graph(start_file="../scripts/runner.py", basedir=".."):
     print(local_dirs)
     G = nx.DiGraph()
     for file, lines, deps in walk_deps(
-            start_file, local_dirs=local_dirs, basedir=basedir, debug=True):
+            start_file, local_dirs=local_dirs, basedir=basedir, debug=False):
 
         dependencies = set([dep for i, (package, dep) in deps.items()])
         print("-"*10)
