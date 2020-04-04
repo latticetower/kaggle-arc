@@ -65,11 +65,13 @@ class Field:
     def sized_dice(a, b):
         if Field.compare_length(a, b):
             return Field.dice(a, b)
-        w = min(a.width, b.width)
         h = min(a.height, b.height)
-        d = Field.dice(Field(a.data[:w, :h]), Field(b.data[:w, :h]))
-        size_coef = 2*w*h/(a.width*a.height+b.width*b.height)
-        return size_coef*d
+        w = min(a.width, b.width)
+        a_ = Field(a.data[:h, :w])
+        b_ = Field(b.data[:h, :w])
+        d = Field.dice(a_, b_)
+        size_coef = 2 * w * h / (a.width * a.height + b.width * b.height)
+        return size_coef * d
 
     @classmethod
     def distance(cls, a, b):
