@@ -32,4 +32,11 @@ class ComplexPredictor(Predictor):
 
     def predict(self, field):
         for p in self.predictors:
-            yield p.predict(field)
+            for v in p.predict(field):
+                yield v
+        # for p in self.predictors:
+        #     try:
+        #         v = next(p.predict(field))
+        #     except:
+        #         continue
+        #     yield v

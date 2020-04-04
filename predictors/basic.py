@@ -26,7 +26,7 @@ class Predictor:
         pass
     
     @classmethod
-    def predict_on(cls, ds, k=3, *args, **kwargs):
+    def predict_on(cls, ds, k=3, args=[], kwargs=dict()):
         for sample in ds:
             predictor = cls(*args, **kwargs)
             predictor.train(sample.train)
@@ -44,8 +44,8 @@ class IdPredictor(Predictor):
     def predict(self, field):
         if isinstance(field, IOData):
             return self.predict(field.input_field)
-        while True:
-            yield Field(field.data)
+        #while True:
+        yield Field(field.data)
 
 
 class ZerosPredictor(Predictor):
@@ -56,8 +56,8 @@ class ZerosPredictor(Predictor):
     def predict(self, field):
         if isinstance(field, IOData):
             return self.predict(field.input_field)
-        while True:
-            yield field.zeros()
+        #while True:
+        yield field.zeros()
 
 
 class ConstPredictor(Predictor):
@@ -71,5 +71,5 @@ class ConstPredictor(Predictor):
     def predict(self, field):
         if isinstance(field, IOData):
             return self.predict(field.input_field)
-        while True:
-            yield field.consts(self.value, multiplier=self.multiplier)
+        #while True:
+        yield field.consts(self.value, multiplier=self.multiplier)

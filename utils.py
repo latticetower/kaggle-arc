@@ -26,13 +26,15 @@ def convert2samples(data):
     return [ Sample(name, path) for name, path in data.items() ]
     
 
-def save_predictions(predictor, ds, savepath):
+def save_predictions(predictor, ds, savepath, k=3, args=[], kwargs=dict()):
     all_data = []
-    for name, i, prediction in predictor.predict_on(ds):
+    for name, i, prediction in predictor.predict_on(ds, k=k, args=args, kwargs=kwargs):
         if isinstance(prediction, Field):
-            preds = [str(prediction)]*3
+            preds = [str(prediction)]*k
         if isinstance(prediction, list):
             preds = [str(p) for p in prediction]
+            if len(preds) < k:
+                preds = (preds * k)[:k]
         preds = " ".join(preds)
         all_data.append({
             'output_id': f"{name}_{i}",
