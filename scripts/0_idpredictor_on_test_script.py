@@ -13,6 +13,6 @@ from predictors.basic import IdPredictor
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
 
-predictor = IdPredictor()
+#predictor = IdPredictor()
 
-save_predictions(predictor, test_ds, TEST_SAVEPATH)
+save_predictions(IdPredictor, test_ds, TEST_SAVEPATH)

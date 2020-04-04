@@ -3,6 +3,7 @@ import os
 from collections import OrderedDict
 import pandas as pd
 from base.iodata import Sample
+from base.field import Field
 
 
 def read_datasets(basedir="../data"):

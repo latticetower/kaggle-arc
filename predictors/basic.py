@@ -5,15 +5,18 @@ from base.field import Field
 
 
 class Predictor:
-    def train(self, iodata):
+    def train(self, sample):
         pass
     def predict(self, field):
         pass
-
-    def predict_on(self, ds):
+        
+    @classmethod
+    def predict_on(cls, ds, *args, **kwargs):
         for sample in ds:
+            predictor = cls(*args, **kwargs)
+            predictor.train(sample)
             for i, iodata in enumerate(sample.iterate_test()):
-                prediction = self.predict(iodata)
+                prediction = predictor.predict(iodata)
                 yield sample.name, i, prediction
 
 
