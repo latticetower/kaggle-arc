@@ -28,8 +28,13 @@ def convert2samples(data):
 def save_predictions(predictor, ds, savepath):
     all_data = []
     for name, i, prediction in predictor.predict_on(ds):
+        if isinstance(prediction, Field):
+            preds = [str(prediction)]*3
+        if isinstance(prediction, list):
+            preds = [str(p) for p in prediction]
+        preds = " ".join(preds)
         all_data.append({
             'output_id': f"{name}_{i}",
-            'output': " ".join([str(prediction)]*3)
+            'output': preds
         })
     pd.DataFrame(all_data, columns=['output_id', "output"]).to_csv(savepath, index=None)
