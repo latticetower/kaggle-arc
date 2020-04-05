@@ -43,20 +43,20 @@ class Predictor:
 
 
 class AvailableAll():
-    def is_available(self, sample):
+    def is_available(self, iodata_list):
         return True
 
 class AvailableEqualShape():
-    def is_available(self, sample):
-        for iodata in sample:
+    def is_available(self, iodata_list):
+        for iodata in iodata_list:
             if iodata.input_field.shape != iodata.output_field.shape:
                 return False
         return True
 
 class AvailableWithMultiplier():
-    def is_available(self, sample):
+    def is_available(self, iodata_list):
         all_sizes = set()
-        for iodata in sample:
+        for iodata in iodata_list:
             m1 = iodata.output_field.height // iodata.input_field.height
             m2 = iodata.output_field.width // iodata.input_field.width
             all_sizes.append((m1, m2))
