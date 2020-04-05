@@ -26,9 +26,10 @@ def convert2samples(data):
     return [ Sample(name, path) for name, path in data.items() ]
     
 
-def save_predictions(predictor, ds, savepath, k=3, args=[], kwargs=dict()):
+def save_predictions(predictor, ds, savepath, k=3, args=[], kwargs=dict(), verbose=True):
     all_data = []
-    for name, i, prediction in predictor.predict_on(ds, k=k, args=args, kwargs=kwargs):
+    for name, i, prediction in predictor.predict_on(
+            ds, k=k, args=args, kwargs=kwargs, verbose=verbose):
         if isinstance(prediction, Field):
             preds = [str(prediction)]*k
         if isinstance(prediction, list):

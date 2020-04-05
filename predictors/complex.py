@@ -1,5 +1,7 @@
 import numpy as np
+from itertools import islice
 
+from base.field import Field
 from predictors.basic import Predictor
 from predictors.basic import AvailableAll
 
@@ -28,11 +30,17 @@ class ComplexPredictor(Predictor, AvailableAll):
         for p in self.predictors:
             p.train(iodata_list)
 
-    def validate(self, iodata_list):
+    def validate(self, iodata_list, k=3):
         scores = []
-        for p in self.predictors:
-            score = p.validate(iodata_list)
-            scores.append(score)
+        for iodata in iodata_list:
+            pred_scores = []
+            for res in islice(self.predict(iodata.input_field), k):
+                score = Field.score(res, iodata.output_field)
+                pred_scores.append(score)
+            scores.append(max(pred_scores))
+        # for p in self.predictors[:3]:
+        #     score = p.validate(iodata_list)
+        #     scores.append(score)
         if len(scores) == 0:
             return 0.0
         return np.mean(scores)
@@ -57,3 +65,6 @@ class ComplexPredictor(Predictor, AvailableAll):
         #     except:
         #         continue
         #     yield v
+    def __str__(self):
+        s = ";".join([ str(p) for p in self.predictors ])
+        return f"ComplexPredictor({s})"

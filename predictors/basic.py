@@ -36,13 +36,17 @@ class Predictor:
         pass
     
     @classmethod
-    def predict_on(cls, ds, k=3, args=[], kwargs=dict()):
+    def predict_on(cls, ds, k=3, args=[], kwargs=dict(), verbose=True):
         for sample in ds:
             predictor = cls(*args, **kwargs)
             #if not predictor.is_available(sample):
             predictor.train(sample.train)
             predictor.freeze_by_score(sample.train)
             
+            score = predictor.validate(sample.train)
+            if score == 1:
+                print(predictor)
+
             for i, iodata in enumerate(sample.test):
                 prediction = list(islice(predictor.predict(iodata), k))
                 yield sample.name, i, prediction
@@ -68,7 +72,7 @@ class AvailableWithIntMultiplier():
             all_sizes.add((m1, m2))
         if len(all_sizes) == 1:
             h, w = all_sizes.pop()
-            if w > 0 and h > 0:
+            if w > 1 and h > 1:
                 self.m1 = h
                 self.m2 = w
                 return True

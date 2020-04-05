@@ -3,7 +3,7 @@ from base.field import *
 
 
 class IOData:
-    def __init__(self, data, input_field=None, output_field=None):
+    def __init__(self, data=None, input_field=None, output_field=None):
         #data['train'][0]['input']
         self.input_field = input_field
         self.output_field = output_field
