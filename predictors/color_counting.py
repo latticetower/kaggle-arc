@@ -2,21 +2,26 @@
 Predictor based on this notebook
 https://www.kaggle.com/szabo7zoltan/colorandcountingmoduloq
 """
+from base.iodata import IOData
+from base.field import Field
+from predictors.basic import Predictor
 from predictors.basic import AvailableWithMultiplier
+
+import numpy as np
 
 def get_p1_p2(i, j, n, k, v, q1, q2):
     if v == 0 or v ==2:
-        p1 = i % Q1
+        p1 = i % q1
     else:
-        p1 = (n - 1 - i)%Q1
+        p1 = (n - 1 - i) % q1
     if v == 0 or v == 3:
-        p2 = j % Q2
+        p2 = j % q2
     else:
-        p2 = (k - 1 - j)%Q2
+        p2 = (k - 1 - j) % q2
     return p1, p2
 
 
-class ColorCountingPredictor(Predictor, AvailableWithMultiplier):
+class ColorCountingPredictor(Predictor, AvailableEqualShape):
     def __init__(self):
         self.best_Dict = None
         self.best_Q1 = -1
@@ -27,14 +32,14 @@ class ColorCountingPredictor(Predictor, AvailableWithMultiplier):
         pairs = [
             (Q1, Q2)
             for t in range(15)
-            for Q1 in range(1,8) 
-            for Q2 in range(1,8)
+            for Q1 in range(1, 8) 
+            for Q2 in range(1, 8)
             if Q1 + Q2 == t
         ]
         possible = True
         for Q1, Q2 in pairs:
             for v in range(4):
-                if best_Dict is not None:
+                if self.best_Dict is not None:
                     return
                 possible = True
                 Dict = {}
