@@ -64,12 +64,33 @@ def filter_local(ids, local_dirs=[], basedir="..", debug=False):
         #path = os.path.join(basedir, s)
         if os.path.exists(path + ".py"):
             result[k] = (v, path + ".py")
-        if os.path.exists(path) and os.path.isdir(path) and os.path.exists(path+"/__init__.py"):
-            result[k] = (v, path+"/__init__.py")
+        if os.path.exists(path) and os.path.isdir(path):
+            if os.path.exists(path + "/__init__.py"):
+                result[k] = (v, path + "/__init__.py")
     return result
+
+
+def filter_local_and_remote(ids, local_dirs=[], basedir="..", debug=False):
+    local_imports = dict()
+    remote_imports = dict()
+
+    for k, v in ids.items():
+        path = os.path.join(basedir, v.replace(".", os.sep))
+        if not (path + ".py" in local_dirs):
+            remote_imports[k] = (v, path)
+            continue
+        
+        #path = os.path.join(basedir, s)
+        if os.path.exists(path + ".py"):
+            local_imports[k] = (v, path + ".py")
+        if os.path.exists(path) and os.path.isdir(path):
+            if os.path.exists(path + "/__init__.py"):
+                local_imports[k] = (v, path + "/__init__.py")
+    return local_imports, remote_imports
     
 
-def walk_deps(filename, processed=set(), local_dirs=[], basedir="..", debug=False):
+def walk_deps(filename, processed=set(),
+        local_dirs=[], basedir="..", debug=False):
     with open(filename) as f:
         lines = f.readlines()
     # local_dirs = [ 
@@ -78,21 +99,21 @@ def walk_deps(filename, processed=set(), local_dirs=[], basedir="..", debug=Fals
     #     if os.path.splitext(f)[-1]==".py"]
 
     #print(local_files)
-
-    ids = filter_local(
-        filter_imports(lines, debug=debug),
-        local_dirs=local_dirs, basedir=basedir, debug=debug)
-    ids_ = { k: (package, path) 
-        for k, (package, path) in ids.items()
-        #if not path in processed
-        }
+    ids = filter_imports(lines, debug=debug)
+    local_imports, remote_imports = filter_local_and_remote(
+        ids, local_dirs=local_dirs, basedir=basedir, debug=debug)
+    # ids_ = { k: (package, path) 
+    #     for k, (package, path) in ids.items()
+    #     #if not path in processed
+    #     }
     #if len(ids_) < 1:
+    remote_import_lines = [ lines[k] for k in remote_imports ]
     lines = [ l for i, l in enumerate(lines) if not i in ids ]
-    yield filename, lines, ids_
+    yield filename, lines, local_imports, remote_import_lines
     
     lines = [ l for i, l in enumerate(lines) if not i in ids ]
     paths = set()
-    for k, (package, path) in ids_.items():
+    for k, (package, path) in local_imports.items():
         if path in processed:
             continue
         paths.add(path)
@@ -114,9 +135,12 @@ def make_graph(start_file="../scripts/runner.py", basedir=".."):
         for f in files
         if os.path.splitext(f)[-1]==".py"]
     #print(local_dirs)
+    all_remote_imports = set()
     G = nx.DiGraph()
-    for file, lines, deps in walk_deps(
+    for file, lines, deps, remote_import_lines in walk_deps(
             start_file, local_dirs=local_dirs, basedir=basedir, debug=False):
+
+        all_remote_imports.update(remote_import_lines)
 
         dependencies = set([dep for i, (package, dep) in deps.items()])
         #print("-"*10)
@@ -139,6 +163,9 @@ def make_graph(start_file="../scripts/runner.py", basedir=".."):
             e = (  nodes[d], nodes[file])
             if not e in G.edges:
                 G.add_edge(*e)
+    index = len(G.nodes)
+    
+    G.add_node(index, name="All imports", lines=sorted(all_remote_imports))
     return G
 
 
@@ -153,13 +180,14 @@ class DepGraph:
             if len(lines) < 1:
                 continue
             yield name, lines
+
     def draw(self):
         pos = nx.spring_layout(self.graph)
         nx.draw(self.graph, pos=pos)
         labels = {i: self.graph.nodes[i]['name'] for i in self.graph.nodes}
         nx.draw_networkx_labels(self.graph, pos=pos, labels=labels)
         plt.savefig("filename.png")
-    
+
 
 def read_file(file_path):
     with open(file_path) as f:
