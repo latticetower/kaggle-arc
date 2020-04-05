@@ -20,7 +20,7 @@ def multiclass_dice(a, b, c):
 
 class Field:
     def __init__(self, data):
-        self.data = np.asarray(data)
+        self.data = np.asarray([[ x for x in line ] for line in data], dtype=np.uint8)
         self.multiplier = 0.5
 
     @property
@@ -34,6 +34,10 @@ class Field:
     @property
     def shape():
         return self.data.shape
+
+    @property
+    def dtype():
+        return self.data.dtype
     
     def __eq__(self, b):
         if not isinstance(b, Field):
