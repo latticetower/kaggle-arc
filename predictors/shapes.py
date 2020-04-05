@@ -33,7 +33,7 @@ class RepeatingPredictor(Predictor, AvailableWithIntMultiplier):
 
 
 
-class ResizingPredictor(Predictor, AvailableWithMultiplier):
+class ResizingPredictor(Predictor, AvailableWithIntMultiplier):
     def __init__(self):
         self.m1 = 1
         self.m2 = 1
@@ -63,7 +63,7 @@ class ResizingPredictor(Predictor, AvailableWithMultiplier):
         return f"ResizingPredictor(m1={self.m1}, m2={self.m2})"
 
 
-class FractalPredictor(Predictor, AvailableWithMultiplier):
+class FractalPredictor(Predictor, AvailableWithIntMultiplier):
     def __init__(self):
         self.m1 = 1
         self.m2 = 1
