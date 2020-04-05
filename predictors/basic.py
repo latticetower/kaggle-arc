@@ -5,8 +5,12 @@ from base.field import Field
 from itertools import islice
 
 class Predictor:
+    # def is_available(sample):
+    #     return True
+
     def train(self, iodata_list):
         pass
+
     def predict(self, field):
         pass
 
@@ -29,6 +33,7 @@ class Predictor:
     def predict_on(cls, ds, k=3, args=[], kwargs=dict()):
         for sample in ds:
             predictor = cls(*args, **kwargs)
+            #if not predictor.is_available(sample):
             predictor.train(sample.train)
             predictor.freeze_by_score(sample.train)
             
@@ -37,7 +42,31 @@ class Predictor:
                 yield sample.name, i, prediction
 
 
-class IdPredictor(Predictor):
+class AvailableAll():
+    def is_available(self, sample):
+        return True
+
+class AvailableEqualShape():
+    def is_available(self, sample):
+        for iodata in sample:
+            if iodata.input_field.shape != iodata.output_field.shape:
+                return False
+        return True
+
+class AvailableWithMultiplier():
+    def is_available(self, sample):
+        all_sizes = set()
+        for iodata in sample:
+            m1 = iodata.output_field.height // iodata.input_field.height
+            m2 = iodata.output_field.width // iodata.input_field.width
+            all_sizes.append((m1, m2))
+        if len(all_sizes) == 1:
+            return True
+        return False
+
+
+class IdPredictor(Predictor, AvailableAll):
+        
     def train(self, iodata_list):
         pass
 
@@ -52,7 +81,7 @@ class IdPredictor(Predictor):
         return "IdPredictor()"
 
 
-class ZerosPredictor(Predictor):
+class ZerosPredictor(Predictor, AvailableAll):
     def __init(self):
         pass
 
@@ -71,7 +100,7 @@ class ZerosPredictor(Predictor):
         return "ZerosPredictor()"
 
 
-class ConstPredictor(Predictor):
+class ConstPredictor(Predictor, AvailableAll):
     def __init__(self, value=1, multiplier=1):
         self.value = value
         self.multiplier = multiplier

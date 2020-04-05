@@ -1,9 +1,9 @@
 import numpy as np
 
 from predictors.basic import Predictor
+from predictors.basic import AvailableAll
 
-
-class ComplexPredictor(Predictor):
+class ComplexPredictor(Predictor, AvailableAll):
     def __init__(self, predictor_classes):
         self.predictors = []
         for data in predictor_classes:
@@ -42,6 +42,8 @@ class ComplexPredictor(Predictor):
 
     def predict(self, field):
         for p in self.predictors:
+            # if not p.is_available(sample):
+            #     continue
             for v in p.predict(field):
                 yield v
         # for p in self.predictors:

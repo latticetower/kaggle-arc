@@ -20,11 +20,21 @@ def multiclass_dice(a, b, c):
 
 class Field:
     def __init__(self, data):
-        self.height = len(data)
-        self.width = len(data[0])
         self.data = np.asarray(data)
-        self.multiplier=0.5
+        self.multiplier = 0.5
 
+    @property
+    def height():
+        return self.data.shape[0]
+
+    @property
+    def width():
+        return self.data.shape[1]
+
+    @property
+    def shape():
+        return self.data.shape
+    
     def __eq__(self, b):
         if not isinstance(b, Field):
             return self.data == b #this does all conversion magic
