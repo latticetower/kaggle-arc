@@ -22,6 +22,9 @@ class ComplexPredictor(Predictor, AvailableAll):
         #pass
 
     def train(self, iodata_list):
+        self.predictors = [
+            p for p in self.predictors
+            if p.is_available(iodata_list) ]
         for p in self.predictors:
             p.train(iodata_list)
 
@@ -30,6 +33,8 @@ class ComplexPredictor(Predictor, AvailableAll):
         for p in self.predictors:
             score = p.validate(iodata_list)
             scores.append(score)
+        if len(scores) == 0:
+            return 0.0
         return np.mean(scores)
     
     def freeze_by_score(self, iodata_list, k=3):
@@ -38,7 +43,7 @@ class ComplexPredictor(Predictor, AvailableAll):
             score = p.validate(iodata_list, k=k)
             scores.append(score)
         ids = np.argsort(scores)[::-1]
-        self.predictors = [ self.predictors[i] for i in ids]
+        self.predictors = [ self.predictors[i] for i in ids ]
 
     def predict(self, field):
         for p in self.predictors:
