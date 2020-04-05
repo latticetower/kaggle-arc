@@ -5,7 +5,7 @@ https://www.kaggle.com/szabo7zoltan/colorandcountingmoduloq
 from base.iodata import IOData
 from base.field import Field
 from predictors.basic import Predictor
-from predictors.basic import AvailableWithMultiplier
+from predictors.basic import AvailableEqualShape
 
 import numpy as np
 

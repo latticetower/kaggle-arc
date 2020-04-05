@@ -17,13 +17,19 @@ class Predictor:
     def validate(self, iodata_list, k=3):
         if isinstance(iodata_list, IOData):
             ps = islice(self.predict(iodata_list.input_field), k)
-            scores = [Field.score(p, iodata_list.output_field) for p in ps]
+            scores = [
+                Field.score(p, iodata_list.output_field)
+                for p in ps ]
+            if len(scores) < 1:
+                return 0.0
             return np.mean(scores)
         
         scores = []
         for iodata in iodata_list:
             score = self.validate(iodata)
             scores.append(score)
+        if len(scores) < 1:
+            return 0.0
         return np.mean(scores)
 
     def freeze_by_score(self, iodata_list, k=3):
