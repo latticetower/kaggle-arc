@@ -67,8 +67,10 @@ class AvailableWithIntMultiplier():
             m2 = iodata.output_field.width // iodata.input_field.width
             all_sizes.add((m1, m2))
         if len(all_sizes) == 1:
-            w, h = all_sizes.pop()
+            h, w = all_sizes.pop()
             if w > 0 and h > 0:
+                self.m1 = h
+                self.m2 = w
                 return True
         return False
 

@@ -1,19 +1,24 @@
 from base.field import Field
+from base.iodata import IOData
 from predictors.basic import Predictor, AvailableAll, AvailableWithIntMultiplier
 
 
+import numpy as np
+
 class RepeatingPredictor(Predictor, AvailableWithIntMultiplier):
     def __init__(self):
-        self.m1 = 1
-        self.m2 = 1
+        # self.m1 = 1
+        # self.m2 = 1
+        pass
 
     def train(self, iodata_list):
-        all_sizes = set()
-        for iodata in iodata_list:
-            m1 = iodata.output_field.height // iodata.input_field.height
-            m2 = iodata.output_field.width // iodata.input_field.width
-            all_sizes.append((m1, m2))
-        self.m1, self.m2 = all_sizes.pop()
+        pass
+        # all_sizes = set()
+        # for iodata in iodata_list:
+        #     m1 = iodata.output_field.height // iodata.input_field.height
+        #     m2 = iodata.output_field.width // iodata.input_field.width
+        #     all_sizes.add((m1, m2))
+        # self.m1, self.m2 = all_sizes.pop()
 
     def predict(self, field):
         if isinstance(field, IOData):
@@ -35,16 +40,18 @@ class RepeatingPredictor(Predictor, AvailableWithIntMultiplier):
 
 class ResizingPredictor(Predictor, AvailableWithIntMultiplier):
     def __init__(self):
-        self.m1 = 1
-        self.m2 = 1
+        pass
+        # self.m1 = 1
+        # self.m2 = 1
 
     def train(self, iodata_list):
-        all_sizes = set()
-        for iodata in iodata_list:
-            m1 = iodata.output_field.height // iodata.input_field.height
-            m2 = iodata.output_field.width // iodata.input_field.width
-            all_sizes.append((m1, m2))
-        self.m1, self.m2 = all_sizes.pop()
+        pass
+        # all_sizes = set()
+        # for iodata in iodata_list:
+        #     m1 = iodata.output_field.height // iodata.input_field.height
+        #     m2 = iodata.output_field.width // iodata.input_field.width
+        #     all_sizes.add((m1, m2))
+        # self.m1, self.m2 = all_sizes.pop()
 
     def predict(self, field):
         if isinstance(field, IOData):
@@ -65,16 +72,18 @@ class ResizingPredictor(Predictor, AvailableWithIntMultiplier):
 
 class FractalPredictor(Predictor, AvailableWithIntMultiplier):
     def __init__(self):
-        self.m1 = 1
-        self.m2 = 1
+        pass
+        # self.m1 = 1
+        # self.m2 = 1
 
     def train(self, iodata_list):
-        all_sizes = set()
-        for iodata in iodata_list:
-            m1 = iodata.output_field.height // iodata.input_field.height
-            m2 = iodata.output_field.width // iodata.input_field.width
-            all_sizes.append((m1, m2))
-        self.m1, self.m2 = all_sizes.pop()
+        pass
+        # all_sizes = set()
+        # for iodata in iodata_list:
+        #     m1 = iodata.output_field.height // iodata.input_field.height
+        #     m2 = iodata.output_field.width // iodata.input_field.width
+        #     all_sizes.add((m1, m2))
+        # self.m1, self.m2 = all_sizes.pop()
 
     def predict(self, field):
         if isinstance(field, IOData):
