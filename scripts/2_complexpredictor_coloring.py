@@ -11,6 +11,8 @@ from predictors.basic import IdPredictor, ZerosPredictor, ConstPredictor
 from predictors.complex import ComplexPredictor
 from predictors.color_counting import ColorCountingPredictor
 from predictors.shapes import RepeatingPredictor, FractalPredictor, ResizingPredictor
+from predictors.boosting_tree import BoostingTreePredictor
+
 
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
@@ -22,7 +24,8 @@ predictor_args = [
     ColorCountingPredictor,
     RepeatingPredictor,
     FractalPredictor,
-    ResizingPredictor
+    ResizingPredictor,
+    BoostingTreePredictor
     ]
 #for i in range(1, 10):
 #    predictor_args.append((ConstPredictor, [], {'value': i}))
