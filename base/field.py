@@ -24,19 +24,19 @@ class Field:
         self.multiplier = 0.5
 
     @property
-    def height():
+    def height(self):
         return self.data.shape[0]
 
     @property
-    def width():
+    def width(self):
         return self.data.shape[1]
 
     @property
-    def shape():
+    def shape(self):
         return self.data.shape
 
     @property
-    def dtype():
+    def dtype(self):
         return self.data.dtype
     
     def __eq__(self, b):
