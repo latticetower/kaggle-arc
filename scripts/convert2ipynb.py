@@ -6,9 +6,11 @@ import networkx as nx
 import subprocess
 import matplotlib
 try:
-    matplotlib.use("svg")
+    if not matplotlib.is_interactive():
+        matplotlib.use("svg")
 except:
     pass
+
 import matplotlib.pyplot as plt
 
 TEMPLATE = {
@@ -90,13 +92,24 @@ def filter_local_and_remote(ids, local_dirs=[], basedir="..", debug=False):
     
 
 def walk_deps(filename, processed=set(),
-        local_dirs=[], basedir="..", debug=False):
+        local_dirs=[], basedir="..", debug=False, split_header=True):
     with open(filename) as f:
         lines = f.readlines()
     # local_dirs = [ 
     #     os.path.join(base, f) for base, dirs, files in os.walk(basedir)
     #     for f in files
     #     if os.path.splitext(f)[-1]==".py"]
+    header_lines = [ filename ]
+    if split_header:
+        if lines[0].strip() == '"""':
+            for i in range(1, len(lines)):
+                pos = lines[i].strip().find('"""')
+                if pos >= 0:
+                    break
+            if pos >= 0:
+                header_lines = lines[1 : i]
+                header_lines.append(lines[i][:pos])
+                lines = lines[i + 1 : ]
 
     #print(local_files)
     ids = filter_imports(lines, debug=debug)
@@ -109,9 +122,9 @@ def walk_deps(filename, processed=set(),
     #if len(ids_) < 1:
     remote_import_lines = [ lines[k] for k in remote_imports ]
     lines = [ l for i, l in enumerate(lines) if not i in ids ]
-    yield filename, lines, local_imports, remote_import_lines
+    yield filename, header_lines, lines, local_imports, remote_import_lines
     
-    lines = [ l for i, l in enumerate(lines) if not i in ids ]
+    # lines = [ l for i, l in enumerate(lines) if not i in ids ]
     paths = set()
     for k, (package, path) in local_imports.items():
         if path in processed:
@@ -137,7 +150,7 @@ def make_graph(start_file="../scripts/runner.py", basedir=".."):
     #print(local_dirs)
     all_remote_imports = set()
     G = nx.DiGraph()
-    for file, lines, deps, remote_import_lines in walk_deps(
+    for file, header_lines, lines, deps, remote_import_lines in walk_deps(
             start_file, local_dirs=local_dirs, basedir=basedir, debug=False):
 
         all_remote_imports.update(remote_import_lines)
@@ -155,17 +168,20 @@ def make_graph(start_file="../scripts/runner.py", basedir=".."):
         if nodes[file] in G.nodes:
             G.nodes[nodes[file]]['lines'] = lines
             G.nodes[nodes[file]]['name'] = file
+            G.nodes[nodes[file]]['header'] = header_lines
         else:
-            G.add_node(nodes[file], lines=lines, name=file)
+            G.add_node(nodes[file], lines=lines, name=file, header=header_lines)
         for d in dependencies:
             if not nodes[d] in G.nodes:
                 G.add_node(nodes[d], name=d)
-            e = (  nodes[d], nodes[file])
+            e = (nodes[d], nodes[file])
             if not e in G.edges:
                 G.add_edge(*e)
     index = len(G.nodes)
     
     G.add_node(index, name="All imports", lines=sorted(all_remote_imports))
+    for i in range(index):
+        G.add_edge(index, i)
     return G
 
 
@@ -175,11 +191,12 @@ class DepGraph:
 
     def sorted_files(self):
         for i in nx.topological_sort(self.graph):
+            header = self.graph.nodes[i].get('header', [])
             lines = self.graph.nodes[i].get('lines', [])
             name = self.graph.nodes[i].get('name', [])
             if len(lines) < 1:
                 continue
-            yield name, lines
+            yield header, name, lines
 
     def draw(self):
         pos = nx.spring_layout(self.graph)
@@ -194,6 +211,16 @@ def read_file(file_path):
         lines = f.readlines()
     return lines
 
+def strip_lines(lines):
+    i = 0
+    j = 0
+    for i in range(len(lines)):
+        if len(lines[i].strip()) > 0:
+            break
+    for j in range(len(lines) - 1, i, -1):
+        if len(lines[j].strip()) > 0:
+            break
+    return lines[i : j + 1]
 
 def wrap2cell(data, ctype="code"):
     code_params = {
@@ -235,9 +262,13 @@ python {cmd}
 """
     #header_text = [linefor line in header_text.split("\n")]
     TEMPLATE['cells'].append(wrap2cell([header_text], ctype="markdown"))
-    for name, lines in graph.sorted_files():
-        TEMPLATE['cells'].append(wrap2cell([name], ctype="markdown"))
-        TEMPLATE['cells'].append(wrap2cell(lines))
+    for header, name, lines in graph.sorted_files():
+        stripped_header = strip_lines(header)
+        if len(stripped_header) > 0:
+            TEMPLATE['cells'].append(wrap2cell(stripped_header, ctype="markdown"))
+        lines = strip_lines(lines)
+        if len(lines) > 0:
+            TEMPLATE['cells'].append(wrap2cell(lines))
 
     with open(args.savepath, 'w') as f:
         json.dump(TEMPLATE, f, indent=2)

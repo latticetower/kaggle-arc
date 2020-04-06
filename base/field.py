@@ -2,9 +2,11 @@ import os
 import numpy as np
 import matplotlib
 try:
-    matplotlib.use("svg")
+    if not matplotlib.is_interactive():
+        matplotlib.use("svg")
 except:
     pass
+
 import matplotlib.pyplot as plt
 
 def binary_dice(a, b):
