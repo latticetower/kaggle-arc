@@ -3,7 +3,7 @@ import numpy as np
 from base.field import Field
 
 class Operation:
-    def __call__(self, field):
+    def __call__(self, data):
         pass
 
 
@@ -13,7 +13,7 @@ class Replace(Operation):
         self.replacements = replacements
         self.repl_func = np.vectorize(lambda x: self.replacements[x])
 
-    def __call__(self, field):
-        c = field.data.copy()
+    def __call__(self, data):
+        c = data.copy()
         c = self.repl_func(c)
-        return Field(c)
+        return c  # Field(c)
