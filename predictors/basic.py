@@ -22,7 +22,7 @@ class Predictor:
                 for p in ps ]
             if len(scores) < 1:
                 return 0.0
-            return np.mean(scores)
+            return max(scores)
         
         scores = []
         for iodata in iodata_list:
@@ -30,7 +30,7 @@ class Predictor:
             scores.append(score)
         if len(scores) < 1:
             return 0.0
-        return np.mean(scores)
+        return max(scores)
 
     def freeze_by_score(self, iodata_list, k=3):
         pass

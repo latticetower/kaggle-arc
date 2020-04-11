@@ -58,6 +58,7 @@ def make_features(field, nfeat=13, local_neighb=5):
     cur_idx = 0
     for i in range(nrows):
         for j in range(ncols):
+            color = field.data[i, j]
             features = [
                 i,
                 j,
@@ -93,6 +94,25 @@ def make_features(field, nfeat=13, local_neighb=5):
                 field.data[nrows - 1 - i, j],
                 field.data[nrows - 1 - i, ncols - 1 - j],
                 field.data[i, ncols - 1 - j]
+            ])
+            features.extend([
+                field.data[i, j] != 0,
+                np.sum([ field.get(i+k, j+v) == color
+                    for k, v in product([-1, 1], [-1, 1])]),
+                np.sum([
+                    field.get(i + 1, j) == color,
+                    field.get(i - 1, j) == color,
+                    field.get(i, j + 1) == color,
+                    field.get(i, j - 1) == color
+                ]),
+                # np.sum([ field.get(i + k, j + v) == 0
+                #     for k, v in product([-1, 1], [-1, 1])]),
+                # np.sum([
+                #     field.get(i + 1, j) == 0,
+                #     field.get(i - 1, j) == 0,
+                #     field.get(i, j + 1) == 0,
+                #     field.get(i, j - 1) == 0
+                # ])
             ])
             all_features.append(features)
 
