@@ -122,7 +122,7 @@ def get_features(iodata_list):
 
 class BoostingTreePredictor(Predictor, AvailableEqualShape):
     def __init__(self):
-        self.xgb =  XGBClassifier(n_estimators=25, booster="dart", n_jobs=-1)
+        self.xgb =  XGBClassifier(n_estimators=25*2, booster="dart", n_jobs=-1)
 
     def train(self, iodata_list):
         feat, target, _ = get_features(iodata_list)
