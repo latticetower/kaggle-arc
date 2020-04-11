@@ -22,9 +22,15 @@ def multiclass_dice(a, b, c):
 
 class Field:
     def __init__(self, data):
-        self.data = np.asarray([[ x for x in line ] for line in data], dtype=np.uint8)
+        self.data = np.asarray([[ (x if x >= 0 else 10 - x) for x in line ] for line in data], dtype=np.uint8)
         self.multiplier = 0.5
-
+    def get(self, i, j, default_color=0):
+        if i < 0 or j < 0:
+            return default_color
+        if i >= self.data.shape[0] or j >= self.data.shape[1]:
+            return default_color
+        return self.data[i, j]
+        
     @property
     def height(self):
         return self.data.shape[0]
