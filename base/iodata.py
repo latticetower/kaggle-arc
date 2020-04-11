@@ -97,7 +97,7 @@ class Sample:
                     for k, prediction in enumerate(preds):
                         ax = fig.add_subplot(test_gs[i, k + 2])
                         if self.test[i].output_field is not None:
-                            dice = Field.score(prediction, self.train[i].output_field)
+                            dice = Field.score(prediction, self.test[i].output_field)
                             dice = f"{dice:1.4f}"
                         else:
                             dice = "-"
