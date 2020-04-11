@@ -3,6 +3,8 @@ import numpy as np
 from base.iodata import IOData
 from base.field import Field
 from itertools import islice
+from utils import check_if_can_be_mirrored
+
 
 class Predictor:
     # def is_available(sample):
@@ -56,12 +58,14 @@ class AvailableAll():
     def is_available(self, iodata_list):
         return True
 
+
 class AvailableEqualShape():
     def is_available(self, iodata_list):
         for iodata in iodata_list:
             if iodata.input_field.shape != iodata.output_field.shape:
                 return False
         return True
+
 
 class AvailableWithIntMultiplier():
     def is_available(self, iodata_list):
@@ -78,6 +82,24 @@ class AvailableWithIntMultiplier():
                 return True
         return False
 
+
+class AvailableMirror(AvailableWithIntMultiplier):
+    def is_available(self, iodata_list):
+        if not super(self, AvailableMirror).is_available(iodata_list):
+            return False
+        results = set()
+        for iodata in iodata_list:
+            h, w = iodata.input_field.shape
+            res = check_if_can_be_mirrored(iodata.output_field.data, h=h, w=w)
+            if res is None:
+                return False
+            results.add(res)
+        (vertical, horizontal) = results.pop()
+        if len(results) > 0:
+            return False
+        self.vertical = vertical
+        self.horizontal = horizontal
+        
 
 class IdPredictor(Predictor, AvailableAll):
         

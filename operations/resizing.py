@@ -60,6 +60,7 @@ class Resizer(Operation):
                     j * self.m2 : (j + 1) * self.m2 ] = data[i, j]
         return result
 
+
 class Fractal(Operation):
     def __init__(self, m1, m2):
         self.m1 = m1
