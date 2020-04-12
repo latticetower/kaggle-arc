@@ -10,7 +10,7 @@ from base.field import *
 from predictors.basic import IdPredictor, ZerosPredictor, ConstPredictor
 from predictors.complex import ComplexPredictor
 from predictors.color_counting import ColorCountingPredictor
-from predictors.shapes import RepeatingPredictor, FractalPredictor, ResizingPredictor
+from predictors.shapes import RepeatingPredictor, FractalPredictor, ResizingPredictor, MirrorPredictor
 from predictors.boosting_tree import BoostingTreePredictor
 
 
@@ -25,7 +25,8 @@ predictor_args = [
     RepeatingPredictor,
     FractalPredictor,
     ResizingPredictor,
-    BoostingTreePredictor
+    BoostingTreePredictor,
+    MirrorPredictor
     ]
 #for i in range(1, 10):
 #    predictor_args.append((ConstPredictor, [], {'value': i}))

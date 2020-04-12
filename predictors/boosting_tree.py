@@ -8,7 +8,7 @@ from base.field import Field
 from base.iodata import IOData
 
 from predictors.basic import *
-
+from operations.basic import Repaint
 
 def get_moore_neighbours(field, cur_row, cur_col, nrows, ncols, color=0):
     if cur_row <= 0:
@@ -153,10 +153,12 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
             for v in self.predict(field.input_field):
                 yield v
             return
+        repainter = Repaint(field.data)
         nrows, ncols = field.shape
         feat = make_features(field)
         preds = self.xgb.predict(feat).reshape(nrows, ncols)
-        preds = preds.astype(int).tolist()
+        preds = preds.astype(int)#.tolist()
+        result = repainter(preds).tolist()
         yield Field(preds)
 
     def __str__(self):

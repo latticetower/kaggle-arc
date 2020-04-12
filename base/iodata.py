@@ -16,16 +16,25 @@ class IOData:
             if 'output' in data:
                 self.output_field = Field(data['output'])
 
-    def show(self, fig=None, axes=None):
+    def show(self, fig=None, axes=None, predictor=None, npredictions=1):
         if fig is None:
-            fig, axes = plt.subplots(nrows=1, ncols=2)
-        ax0, ax1 = axes
+            if predictor is not None:
+                fig, axes = plt.subplots(nrows=1, ncols=2+npredictions)
+            else:
+                fig, axes = plt.subplots(nrows=1, ncols=2)
+        ax0, ax1 = axes[:2]
         if self.input_field is not None:
             self.input_field.show(ax0, label="input")
+        ax0.axis("off")
         if self.output_field is not None:
             self.output_field.show(ax1, label="output")
-        ax0.axis("off")
         ax1.axis("off")
+        if predictor is not None:
+            for i, prediction in enumerate(
+                    islice(predictor.predict(self.input_field), npredictions)):
+                ax = axes[2 + i]
+                prediction.show(ax)
+                ax.axis("off")
 
 
 class Sample:

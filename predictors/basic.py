@@ -19,6 +19,7 @@ class Predictor:
     def validate(self, iodata_list, k=3):
         if isinstance(iodata_list, IOData):
             ps = islice(self.predict(iodata_list.input_field), k)
+            #print(list(ps))
             scores = [
                 Field.score(p, iodata_list.output_field)
                 for p in ps ]
@@ -32,6 +33,7 @@ class Predictor:
             scores.append(score)
         if len(scores) < 1:
             return 0.0
+        #print(scores)
         return max(scores)
 
     def freeze_by_score(self, iodata_list, k=3):
@@ -85,12 +87,18 @@ class AvailableWithIntMultiplier():
 
 class AvailableMirror(AvailableWithIntMultiplier):
     def is_available(self, iodata_list):
-        if not super(self, AvailableMirror).is_available(iodata_list):
+        availability_check = AvailableWithIntMultiplier()
+        #print(isinstance(self, AvailableMirror))
+        if not availability_check.is_available(iodata_list):
+            #print(11)
             return False
+        self.m1 = availability_check.m1
+        self.m2 = availability_check.m2
         results = set()
         for iodata in iodata_list:
             h, w = iodata.input_field.shape
             res = check_if_can_be_mirrored(iodata.output_field.data, h=h, w=w)
+            #print(res)
             if res is None:
                 return False
             results.add(res)
@@ -99,6 +107,7 @@ class AvailableMirror(AvailableWithIntMultiplier):
             return False
         self.vertical = vertical
         self.horizontal = horizontal
+        return True
         
 
 class IdPredictor(Predictor, AvailableAll):
