@@ -28,7 +28,7 @@ def dice_loss(pred, gt):
         
         
 
-def make_features(field, nfeat=13, local_neighb=5):
+def make_conv_features(field, nfeat=13, local_neighb=5):
     nrows, ncols = field.shape
     #feat = np.zeros((nrows*ncols, nfeat))
     all_features = []
@@ -211,7 +211,7 @@ class ConvolutionPredictor(Predictor, AvailableEqualShape):
             self.optimizer.zero_grad()
             #train_x, train_y, result = make_features(iodata_list)
             for iodata in iodata_list:
-                features = make_features(iodata.input_field)#.reshape(iodata.input_field.shape+(-1,))
+                features = make_conv_features(iodata.input_field)#.reshape(iodata.input_field.shape+(-1,))
                 features = np.moveaxis(features, -1, 0)
                 features = features[np.newaxis, ...]
                 i = torch.tensor(features).float()
@@ -242,7 +242,7 @@ class ConvolutionPredictor(Predictor, AvailableEqualShape):
             return
         self.model.eval()
         with torch.no_grad():
-            features = make_features(field)
+            features = make_conv_features(field)
             features = np.moveaxis(features, -1, 0)
             features = features[np.newaxis, ...]
             i = torch.tensor(features).float()
