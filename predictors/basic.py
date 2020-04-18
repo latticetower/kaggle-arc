@@ -195,8 +195,8 @@ class FillPredictor(Predictor, AvailableEqualShape):
         #print(patches)
         common_patch = np.zeros(patches[0].shape, dtype=patches[0].dtype)
         for p in patches:
-            for i in p.shape[0]:
-                for j in p.shape[1]:
+            for i in range(p.shape[0]):
+                for j in range(p.shape[1]):
                     if common_patch[i, j] == 0:
                         common_patch[i, j] = p[i, j]
                     elif common_patch[i, j]!= p[i, j]:
