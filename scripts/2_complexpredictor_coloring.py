@@ -7,7 +7,7 @@ from base.field import Field
 from utils import *
 from base.field import *
 
-from predictors.basic import IdPredictor, ZerosPredictor, ConstPredictor
+from predictors.basic import IdPredictor, ZerosPredictor, ConstPredictor, FillPredictor
 from predictors.complex import ComplexPredictor
 from predictors.color_counting import ColorCountingPredictor
 from predictors.shapes import RepeatingPredictor, FractalPredictor, ResizingPredictor, MirrorPredictor
@@ -26,6 +26,7 @@ predictor_args = [
     FractalPredictor,
     ResizingPredictor,
     BoostingTreePredictor,
+    FillPredictor,
     #MirrorPredictor,
     (ConvolutionPredictor, [], {'loss': 'mse'}),
     (ConvolutionPredictor, [], {'loss': 'dice'})
