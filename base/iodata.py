@@ -35,6 +35,17 @@ class IOData:
                 ax = axes[2 + i]
                 prediction.show(ax)
                 ax.axis("off")
+    def t(self):
+        result = [self.input_field.t()]
+        if self.output_field is not None:
+            result.append(self.output_field.t())
+        return tuple(result)
+
+    def t_splitted(self):
+        result = [self.input_field.t_splitted()]
+        if self.output_field is not None:
+            result.append(self.output_field.t_splitted())
+        return tuple(result)
 
 
 class Sample:
@@ -57,7 +68,7 @@ class Sample:
     @property
     def test(self):
         return self._test
-
+    
     def predict(self, predictors):
         predictions = []
         for sample in self.iterate_test():
@@ -72,8 +83,9 @@ class Sample:
         ntrain = len(self.train)
         ntest = len(self.test)
         ncols += npredictions
-        if not predictor.is_available(self.train):
-            predictor=None
+        if predictor is not None:
+            if not predictor.is_available(self.train):
+                predictor=None
         gs, train_gs, test_gs = grids
         if fig is None:
             fig = plt.figure(figsize=(ncols * w, (ntrain + ntest) * h))

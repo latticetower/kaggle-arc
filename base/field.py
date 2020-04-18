@@ -9,6 +9,8 @@ except:
 
 import matplotlib.pyplot as plt
 
+import torch
+
 def binary_dice(a, b):
     s = (np.sum(a) + np.sum(b))
     if s != 0:
@@ -46,7 +48,20 @@ class Field:
     @property
     def dtype(self):
         return self.data.dtype
-    
+    @property
+    def data_splitted(self):
+        return np.stack([1.0*(self.data == i) for i in range(10)])
+
+    def t(self):
+        return torch.tensor(self.data)
+
+    def t_splitted(self):
+        return torch.tensor(self.data_splitted)
+
+    @staticmethod
+    def from_splitted(data):
+        return Field(np.argmax(data, 0))
+
     def __eq__(self, b):
         if not isinstance(b, Field):
             return self.data == b #this does all conversion magic
