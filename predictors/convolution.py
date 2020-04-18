@@ -10,14 +10,14 @@ from predictors.boosting_tree import get_tl_tr
 from predictors.basic import Predictor, AvailableEqualShape
 
 
-def binary_dice(a, b, eps=1.0):
-    #print(a.shape)
-    s = (torch.sum(a) + torch.sum(b)+ eps)
-    if s != 0:
-        return 2*torch.sum(a*b)/s
-    return None#torch.tensor()
-
 def dice_loss(pred, gt):
+    def binary_dice(a, b, eps=1.0):
+        #print(a.shape)
+        s = (torch.sum(a) + torch.sum(b)+ eps)
+        if s != 0:
+            return 2*torch.sum(a*b)/s
+        return None#torch.tensor()
+
     #print(pred.shape, gt.shape)
     res = [
         binary_dice(pred[:, i], gt[:, i])
