@@ -168,28 +168,64 @@ class Field:
                 new_id = len(node_ids)
                 node_ids[new_id] = (i, j)
                 node_coords[(i, j)] = new_id
-                graph_nx.add_node(new_id,
-                    left=i==0,
-                    top=j==0,
-                    right=i==self.data.shape[0],
-                    bottom=j==self.data.shape[1],
-                    color=self.data[i, j],
-                    x=all_features[:, i, j].astype(np.float64),
-                    pos=(i, j))
-
-        for i in range(self.data.shape[0]):
-            for j in range(self.data.shape[1]):
+                
+                color = self.data[i, j]
+                
+                #features = [
+                left = i == 0  # left
+                top = j == 0  # top
+                right = i == self.data.shape[0] - 1 # right
+                bottom = j == self.data.shape[1] - 1 # bottom
+                features = [left, right, top, bottom]
                 neighbours = [
                     (i1, j1)
                     for i1, j1 in product([i - 1, i, i + 1], [j - 1, j, j + 1])
                     if (i1 != i or j1 != j) and i1 >= 0 and j1 >= 0
                     and i1 < self.data.shape[0] and j1 < self.data.shape[1]
                 ]
+                if connectivity.get(color, 4) == 4:
+                    neighbours = [(i1, j1) for i1, j1 in neighbours if (i1 == i or j1 == j)]
+                # angle 90
+                
+                angle_props = []
+                for d1, d2 in [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]:
+                    angle_270 = False
+                    left_shift = False
+                    top_shift = False
+                    if self.get(i + d1, j + d2) != color:
+                        angle_270 = self.get(i, j + d2) == color and self.get(i + d1, j) == color
+                        left_shift = self.get(i + d1, j) != color
+                        top_shift = self.get(i, j+d2) != color
+                    angle_props.extend([
+                        angle_270,
+                        left_shift, top_shift
+                    ])
+                features.extend(angle_props)
+                #for c in self.get(i - 1, j), self.get(i, j - 1), self.get(i+1, j), self.get
+                # for i1 in (i - 1, i + 1) if i1 >=0 and i1 < self.data.shape[0]
+                # if not left
+                ncolors = set([self.data[i1, j1] for i1, j1 in neighbours])
+                ncolors = [(i in ncolors)*1 for i in range(10)]
+                graph_nx.add_node(new_id,
+                    features=np.asarray(features).astype(np.float),
+                    neighbours=neighbours,
+                    neighbour_colors = np.asarray(ncolors),
+                    color=self.data[i, j],
+                    x=all_features[:, i, j].astype(np.float64),
+                    pos=(i, j))
+
+        for i in range(self.data.shape[0]):
+            for j in range(self.data.shape[1]):
+                #neighbours = [
+                #    (i1, j1)
+                #    for i1, j1 in product([i - 1, i, i + 1], [j - 1, j, j + 1])
+                #    if (i1 != i or j1 != j) and i1 >= 0 and j1 >= 0
+                #    and i1 < self.data.shape[0] and j1 < self.data.shape[1]
+                #]
                 id0 = node_coords[(i, j)]
                 color0 = self.data[i, j]
                 
-                if connectivity.get(color0, 4) == 4:
-                    neighbours = [(i1, j1) for i1, j1 in neighbours if (i1 == i or j1 == j)]
+                neighbours = graph_nx.nodes[id0]['neighbours']
                 
                 for i1, j1 in neighbours:
                     id1 = node_coords[(i1, j1)]
