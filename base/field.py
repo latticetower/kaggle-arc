@@ -10,6 +10,14 @@ except:
 import matplotlib.pyplot as plt
 
 import torch
+from itertools import product
+from collections import OrderedDict
+import networkx as nx
+
+
+def get_features(data):
+    return np.stack([(data==i)*1.0 for i in range(10)], 0)
+
 
 def binary_dice(a, b):
     s = (np.sum(a) + np.sum(b))
@@ -143,3 +151,39 @@ class Field:
             [ int(x) for x in line ]
             for line in s[1:-1].split("|") ]
         return Field(data)
+        
+    def build_nxgraph(self):
+        graph_nx = nx.MultiDiGraph()
+        graph_nx.graph['features'] = np.asarray([(np.sum(self.data == i) > 0)*1.0 for i in range(10)])
+        all_features = get_features(self.data)
+        node_ids = OrderedDict() # node id -> (i, j) pair
+        node_coords = OrderedDict() # node (i, j) pair -> id
+
+        for i in range(self.data.shape[0]):
+            for j in range(self.data.shape[1]):
+                new_id = len(node_ids)
+                node_ids[new_id] = (i, j)
+                node_coords[(i, j)] = new_id
+                graph_nx.add_node(new_id, features=all_features[:, i, j], coords=(i, j))
+
+
+        for i in range(self.data.shape[0]):
+            for j in range(self.data.shape[1]):
+                neighbours = [
+                    (i1, j1)
+                    for i1, j1 in product([i - 1, i, i + 1], [j - 1, j, j + 1])
+                    if (i1 != i or j1 != j) and i1 >= 0 and j1 >= 0
+                    and i1 < self.data.shape[0] and j1 < self.data.shape[1]
+                    and (i1 == i or j1 == j)
+                ]
+                id0 = node_coords[(i, j)]
+                color0 = self.data[i, j]
+                for i1, j1 in neighbours:
+                    id1 = node_coords[(i1, j1)]
+                    color1 = self.data[i1, j1]
+                    if color0 == color1:
+                        graph_nx.add_edge(id0, id1, features=[color0])
+                        #graph_nx.add_edge(id1, id0, features=[color0])
+
+                #graph_nx.add_node()
+        return graph_nx
