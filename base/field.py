@@ -15,9 +15,6 @@ from collections import OrderedDict
 import networkx as nx
 
 
-def get_features(data):
-    return np.stack([(data==i)*1.0 for i in range(10)], 0)
-
 
 def binary_dice(a, b):
     s = (np.sum(a) + np.sum(b))
@@ -152,9 +149,16 @@ class Field:
             for line in s[1:-1].split("|") ]
         return Field(data)
         
-    def build_nxgraph(self):
-        graph_nx = nx.MultiDiGraph()
-        graph_nx.graph['features'] = np.asarray([(np.sum(self.data == i) > 0)*1.0 for i in range(10)])
+    def build_nxgraph(self, connectivity={0: 4}):
+        def get_features(data):
+            return np.stack([(data==i)*1.0 for i in range(10)], 0)
+
+        graph_nx = nx.Graph()
+        graph_nx.graph['global_features'] = np.asarray(
+            [[
+                (np.sum(self.data == i) > 0)*1.0
+                for i in range(10)
+            ]]).astype(np.float64)
         all_features = get_features(self.data)
         node_ids = OrderedDict() # node id -> (i, j) pair
         node_coords = OrderedDict() # node (i, j) pair -> id
@@ -164,8 +168,14 @@ class Field:
                 new_id = len(node_ids)
                 node_ids[new_id] = (i, j)
                 node_coords[(i, j)] = new_id
-                graph_nx.add_node(new_id, features=all_features[:, i, j], coords=(i, j))
-
+                graph_nx.add_node(new_id,
+                    left=i==0,
+                    top=j==0,
+                    right=i==self.data.shape[0],
+                    bottom=j==self.data.shape[1],
+                    color=self.data[i, j],
+                    x=all_features[:, i, j].astype(np.float64),
+                    pos=(i, j))
 
         for i in range(self.data.shape[0]):
             for j in range(self.data.shape[1]):
@@ -174,15 +184,23 @@ class Field:
                     for i1, j1 in product([i - 1, i, i + 1], [j - 1, j, j + 1])
                     if (i1 != i or j1 != j) and i1 >= 0 and j1 >= 0
                     and i1 < self.data.shape[0] and j1 < self.data.shape[1]
-                    and (i1 == i or j1 == j)
                 ]
                 id0 = node_coords[(i, j)]
                 color0 = self.data[i, j]
+                
+                if connectivity.get(color0, 4) == 4:
+                    neighbours = [(i1, j1) for i1, j1 in neighbours if (i1 == i or j1 == j)]
+                
                 for i1, j1 in neighbours:
                     id1 = node_coords[(i1, j1)]
                     color1 = self.data[i1, j1]
                     if color0 == color1:
-                        graph_nx.add_edge(id0, id1, features=[color0])
+                        graph_nx.add_edge(id0, id1,
+                            features=np.asarray(
+                                [
+                                    (color0==x)*1.0
+                                    for x in range(10)
+                                ]).astype(np.float64))
                         #graph_nx.add_edge(id1, id0, features=[color0])
 
                 #graph_nx.add_node()
