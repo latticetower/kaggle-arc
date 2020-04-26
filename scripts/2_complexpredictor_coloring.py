@@ -28,7 +28,7 @@ predictor_args = [
     BoostingTreePredictor,
     FillPredictor,
     #MirrorPredictor,
-    (ConvolutionPredictor, [], {'loss': 'mse'}),
+    #(ConvolutionPredictor, [], {'loss': 'mse'}),
     (ConvolutionPredictor, [], {'loss': 'dice'})
     ]
 #for i in range(1, 10):
