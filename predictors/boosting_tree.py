@@ -147,7 +147,7 @@ class BTFeatureExtractor:
 
 class BoostingTreePredictor(Predictor, AvailableEqualShape):
     def __init__(self):
-        self.xgb =  XGBClassifier(n_estimators=1000, booster="dart", n_jobs=-1,
+        self.xgb =  XGBClassifier(n_estimators=100, booster="dart", n_jobs=-1,
             objective="multi:softmax", num_class=10)
 
     def train(self, iodata_list):
