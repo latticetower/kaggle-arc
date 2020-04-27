@@ -7,8 +7,7 @@ from skimage.measure import label
 
 from base.iodata import *
 from base.field import *
-from predictors.boosting_tree import get_moore_neighbours
-from predictors.boosting_tree import get_tl_tr
+from predictors.boosting_tree import BTFeatureExtractor
 from predictors.basic import Predictor, AvailableEqualShape
 
 
@@ -83,8 +82,8 @@ def make_conv_features(field, nfeat=13, local_neighb=5):
                 i,
                 j,
                 field.data[i, j]]
-            features.extend(get_moore_neighbours(field, i, j, nrows, ncols))
-            features.extend(get_tl_tr(field, i, j, nrows, ncols))
+            features.extend(BTFeatureExtractor.get_moore_neighbours(field, i, j, nrows, ncols))
+            features.extend(BTFeatureExtractor.get_tl_tr(field, i, j, nrows, ncols))
             features.extend([
                 len(np.unique(field.data[i,:])),
                 len(np.unique(field.data[:,j])),

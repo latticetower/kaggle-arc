@@ -26,8 +26,8 @@ predictor_args = [
     RepeatingPredictor,
     FractalPredictor,
     ResizingPredictor,
-    GraphBoostingTreePredictor,
-    #BoostingTreePredictor,
+    GraphBoostingTreePredictor,#no impact
+    BoostingTreePredictor,
     #FillPredictor,
     #MirrorPredictor,
     #(ConvolutionPredictor, [], {'loss': 'mse'}),
