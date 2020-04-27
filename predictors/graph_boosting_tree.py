@@ -191,7 +191,7 @@ class GraphBoostingTreePredictor2(Predictor):
             components.append(len(compdata))
             components_nonzero.append(len([gi for gi in compdata if gi['color']!=0]))
         self.ncomponents = -1
-        #print(components, components_nonzero)
+        print(components, components_nonzero)
         if len(components) < 1:
             return False
         if len(np.unique(components)) == 1:

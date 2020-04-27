@@ -29,7 +29,10 @@ def multiclass_dice(a, b, c):
 
 class Field:
     def __init__(self, data):
-        self.data = np.asarray([[ (x if x >= 0 else 10 - x) for x in line ] for line in data], dtype=np.uint8)
+        if isinstance(data, list):
+            self.data = np.asarray([[ (x if x >= 0 else 10 - x) for x in line ] for line in data], dtype=np.uint8)
+        else:
+            self.data = data.copy()
         self.multiplier = 0.5
     def get(self, i, j, default_color=0):
         if i < 0 or j < 0:
