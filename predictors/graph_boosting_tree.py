@@ -191,7 +191,7 @@ class GraphBoostingTreePredictor2(Predictor):
             components.append(len(compdata))
             components_nonzero.append(len([gi for gi in compdata if gi['color']!=0]))
         self.ncomponents = -1
-        print(components, components_nonzero)
+        #print(components, components_nonzero)
         if len(components) < 1:
             return False
         if len(np.unique(components)) == 1:
@@ -212,7 +212,7 @@ class GraphBoostingTreePredictor2(Predictor):
         train_sets = [[] for i in range(self.ncomponents)]
         for iodata in iodata_list:
             features, target_binary, target = GraphFeatureExtractor.prepare_graph_features(iodata, self.use_zeros)
-            for i in range(self.ncomponents):
+            for i in range(min(features.shape[0], self.ncomponents)):
                 train_sets[i].append((features[i], target_binary[i], target[i]))
         #print(len(train_sets))
         for ts in train_sets:
@@ -235,7 +235,8 @@ class GraphBoostingTreePredictor2(Predictor):
         graph_data, inputs = GraphFeatureExtractor.prepare_graph_features_for_eval(field, self.use_zeros)
         predictions = []
         #print(inputs.shape, len(graph_data), len(self.xgb_classifiers))
-        for i in range(inputs.shape[0]):
+        #print(len(self.xgb_classifiers), inputs.shape)
+        for i in range(min(inputs.shape[0], self.ncomponents)):
             xgb = self.xgb_classifiers[i]
             predictions.append(xgb.predict([inputs[i]]))
         #result = repainter(preds).tolist()
