@@ -168,7 +168,7 @@ class GraphBoostingTreePredictor(Predictor, AvailableEqualShapeAndComponents):
 
 
 
-class GraphBoostingTreePredictor2(Predictor, AvailableEqualShapeAndComponents):
+class GraphBoostingTreePredictor2(Predictor):
     def __init__(self, n_estimators=10):
         #self.xgb_binary =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1)
         #self.xgb =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1,
@@ -192,12 +192,15 @@ class GraphBoostingTreePredictor2(Predictor, AvailableEqualShapeAndComponents):
             components_nonzero.append(len([gi for gi in compdata if gi['color']!=0]))
         self.ncomponents = -1
         #print(components, components_nonzero)
+        if len(components) < 1:
+            return False
         if len(np.unique(components)) == 1:
             self.use_zeros = True
             self.ncomponents = np.unique(components)[0]
-        if len(np.unique(components_nonzero))==1:
-            self.use_zeros = False
-            self.ncomponents = np.unique(components_nonzero)[0]
+        if len(components_nonzero) > 0:
+            if len(np.unique(components_nonzero))==1:
+                self.use_zeros = False
+                self.ncomponents = np.unique(components_nonzero)[0]
         #[GraphFeatureExtractor.prepare_graph_features(iodata)
         #    for iodata in iodata_list]))
         if self.ncomponents < 1:
