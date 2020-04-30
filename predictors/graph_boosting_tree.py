@@ -6,6 +6,7 @@ import numpy as np
 from xgboost import XGBClassifier
 
 from predictors.basic import Predictor, AvailableEqualShape
+from predictors.boosting_tree import BTFeatureExtractor
 from base.field import Field
 from base.iodata import IOData
 
@@ -26,13 +27,22 @@ class GraphFeatureExtractor:
             nfeatures = []
             positions = set()
             ncolors = []
+            props = set()
             for n in gx.nodes.values():
                 ncolors.append(n['neighbour_colors'])
                 color = n['color']
                 nfeatures.append(n['features'])
                 positions.add(n['pos'])
-            yield {'color': color, 'features': np.stack(nfeatures, 0).sum(0), 'ncolors': np.stack(ncolors, 0).sum(0), 
-                    'pos': positions, 'size': len(x) }
+                if 'properties' in n:
+                    props.add(n['properties'])
+            data = {
+                'color': color,
+                'features': np.stack(nfeatures, 0).sum(0), 'ncolors': np.stack(ncolors, 0).sum(0), 
+                'pos': positions, 'size': len(x) }
+            if len(props) > 0:
+                data['properties'] = props
+            yield data
+
 
     @staticmethod
     def reorder(component_params_in, component_params_out):
@@ -53,7 +63,11 @@ class GraphFeatureExtractor:
             for gi in cpi:
                 if not use_zeros and gi['color'] == 0:
                     continue
-                yield gi['color'], gi['features'], gi['ncolors'], gi['size']
+                #yield gi['color'], gi['features'], gi['ncolors'], gi['size']
+                if 'properties' in gi:
+                    yield gi['color'], gi['features'], gi['ncolors'], gi['size'], gi['properties']
+                else:
+                    yield gi['color'], gi['features'], gi['ncolors'], gi['size']
             return
         for gi, go in zip(cpi, cpo):
             if not use_zeros and gi['color'] == 0:
@@ -95,7 +109,27 @@ class GraphFeatureExtractor:
             component_params_in, component_params_out, use_zeros=use_zeros)
 
         return inputs, targets, targets_color
-    
+
+    @staticmethod
+    def prepare_graph_features_diff(iodata, use_zeros=False):
+        GI = iodata.input_field.build_nxgraph(
+            connectivity={i: 4 for i in range(10)},
+            properties=iodata.input_field.data != iodata.output_field.data
+        )
+        graph_data = list(GraphFeatureExtractor.get_comp_params(GI))
+        colors, features, ncolors, sizes, properties = list(
+            zip(*GraphFeatureExtractor.get_data(graph_data)))
+        
+        colors = np.asarray([[i==c for i in range(10)] for c in colors]).astype(np.float)
+        features = (np.stack(features, 0) > 0)*1.0
+        ncolors = (np.stack(ncolors, 0) > 0).astype(np.float)
+        sizes = np.asarray(sizes).reshape(-1, 1)
+        targets = np.asarray([np.any(list(p))*1.0 for p in properties])#np.asarray(targets_bin)#.reshape(-1, 1)
+        
+        inputs = np.concatenate([colors, features, ncolors, sizes], 1)
+        
+        return inputs, targets#, targets_color
+
 
     @staticmethod
     def prepare_graph_features_for_eval(field, use_zeros=True):
@@ -233,6 +267,8 @@ class GraphBoostingTreePredictor2(Predictor):
         prediction_data = np.zeros(field.shape)
         #print(self.use_zeros)
         graph_data, inputs = GraphFeatureExtractor.prepare_graph_features_for_eval(field, self.use_zeros)
+        if inputs.shape[0] < 1:
+            return field
         predictions = []
         #print(inputs.shape, len(graph_data), len(self.xgb_classifiers))
         #print(len(self.xgb_classifiers), inputs.shape)
@@ -246,6 +282,78 @@ class GraphBoostingTreePredictor2(Predictor):
                 prediction_data[i, j] = color
 
         yield Field(prediction_data)
+
+    def __str__(self):
+        return "GraphBoostingTreePredictor2()"
+    
+
+class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
+    def __init__(self, n_estimators=10):
+        #self.xgb_binary =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1)
+        #self.xgb =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1,
+        #    objective="multi:softmax", num_class=10)
+        self.xgb_binary =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1)
+        self.xgb =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1,
+            objective="multi:softmax", num_class=10)
+        self.use_zeros=True
+        
+    def _make_train_binary_features(self, iodata_list):
+        train_x_binary, train_y_binary = list(
+            zip(*[
+                    GraphFeatureExtractor.prepare_graph_features_diff(iodata, self.use_zeros)
+                    for iodata in iodata_list
+                  ]))
+        train_x_binary = np.concatenate(train_x_binary, 0)
+        train_y_binary = np.concatenate(train_y_binary, 0)
+        return train_x_binary, train_y_binary
+        
+    def train(self, iodata_list, n_estimators=20):
+        #train_x, train_y_bin, train_y = list(
+        train_x_binary, train_y_binary = self._make_train_binary_features(iodata_list)
+        #feat, target, _ = GraphFeatureExtractor.prepare_graph_features(iodata_list)
+        self.xgb_binary.fit(train_x_binary, train_y_binary, verbose=-1)
+        
+        feat, target, _ = BTFeatureExtractor.get_features(iodata_list)
+        self.xgb.fit(feat, target, verbose=-1)
+        #next - train xgboost
+
+    def predict(self, field, return_binary=False):
+        if isinstance(field, IOData):
+            for v in self.predict(field.input_field):
+                yield v
+            return
+        #repainter = Repaint(field.data)
+        nrows, ncols = field.shape
+        prediction_data = np.zeros(field.shape, dtype=np.uint8)
+        #print(self.use_zeros)
+        graph_data, inputs = GraphFeatureExtractor.prepare_graph_features_for_eval(
+            field, self.use_zeros)
+        if inputs.shape[0] < 1:
+            #return field
+            preds_binary = []
+        else:
+            preds_binary = self.xgb_binary.predict(inputs)
+        
+        feat = BTFeatureExtractor.make_features(field)
+        preds = self.xgb.predict(feat).reshape(nrows, ncols)
+        preds = preds.astype(int)#.tolist()
+        #result = repainter(preds).tolist()
+        prediction_data = preds
+        if len(preds) > 0 and np.sum(preds) > 0:
+            for comp, cbin in zip(graph_data, preds_binary):
+                #color = int(new_col) if cbin > 0.5 else comp['color']
+                #if cbin > 0.5:
+                #    print("new color", new_col, "old_color", comp['color'])
+                for i, j in comp['pos']:
+                    if cbin > 0.5:
+                        prediction_data[i, j] = preds[i, j]
+                    else:
+                        prediction_data[i, j] = comp['color']
+        if return_binary:
+            print(111)
+            yield preds_binary, graph_data, Field(prediction_data)
+        else:
+            yield Field(prediction_data)
 
     def __str__(self):
         return "GraphBoostingTreePredictor2()"

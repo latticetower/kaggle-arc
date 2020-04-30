@@ -152,7 +152,7 @@ class Field:
             for line in s[1:-1].split("|") ]
         return Field(data)
         
-    def build_nxgraph(self, connectivity={0: 4}):
+    def build_nxgraph(self, connectivity={0: 4}, properties=None):
         def get_features(data):
             return np.stack([(data==i)*1.0 for i in range(10)], 0)
 
@@ -209,13 +209,25 @@ class Field:
                 # if not left
                 ncolors = set([self.data[i1, j1] for i1, j1 in neighbours])
                 ncolors = [(i in ncolors)*1 for i in range(10)]
+                props = {
+                    'features': np.asarray(features).astype(np.float),
+                    'neighbours': neighbours,
+                    'neighbour_colors': np.asarray(ncolors),
+                    'color': self.data[i, j],
+                    'x': all_features[:, i, j].astype(np.float64),
+                    'pos': (i, j)
+                }
+                if properties is not None:
+                    props['properties'] = properties[i, j]
                 graph_nx.add_node(new_id,
-                    features=np.asarray(features).astype(np.float),
-                    neighbours=neighbours,
-                    neighbour_colors = np.asarray(ncolors),
-                    color=self.data[i, j],
-                    x=all_features[:, i, j].astype(np.float64),
-                    pos=(i, j))
+                    # features=np.asarray(features).astype(np.float),
+                    # neighbours=neighbours,
+                    # neighbour_colors = np.asarray(ncolors),
+                    # color=self.data[i, j],
+                    # x=all_features[:, i, j].astype(np.float64),
+                    # pos=(i, j)
+                    **props
+                    )
 
         for i in range(self.data.shape[0]):
             for j in range(self.data.shape[1]):

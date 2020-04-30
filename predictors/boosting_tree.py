@@ -86,9 +86,9 @@ class BTFeatureExtractor:
                     (i + ncols - j - 1),
                     (i + j) % 2,
                     (i + j + 1) % 2,
-                    #(i + ncols - j - 1) % 2
-                    #(nrows - 1 - i + ncols - j - 1),
-                    #(nrows - 1 - i + j)
+                    (i + ncols - j - 1) % 2, #
+                    (nrows - 1 - i + ncols - j - 1),#
+                    (nrows - 1 - i + j)#
                 ])
                 features.extend([
                     field.get(i + k, j + v)
@@ -109,14 +109,15 @@ class BTFeatureExtractor:
                         field.get(i, j + 1) == color,
                         field.get(i, j - 1) == color
                     ]),
-                    # np.sum([ field.get(i + k, j + v) == 0
-                    #     for k, v in product([-1, 1], [-1, 1])]),
-                    # np.sum([
-                    #     field.get(i + 1, j) == 0,
-                    #     field.get(i - 1, j) == 0,
-                    #     field.get(i, j + 1) == 0,
-                    #     field.get(i, j - 1) == 0
-                    # ])
+                    #next were commented
+                    np.sum([ field.get(i + k, j + v) == 0
+                        for k, v in product([-1, 1], [-1, 1])]),
+                    np.sum([
+                        field.get(i + 1, j) == 0,
+                        field.get(i - 1, j) == 0,
+                        field.get(i, j + 1) == 0,
+                        field.get(i, j - 1) == 0
+                    ])
                 ])
                 all_features.append(features)
 
