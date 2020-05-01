@@ -15,3 +15,20 @@ To convert script to single ipynb notebook, call command from the root repo fold
 python scripts/convert2ipynb.py scripts/runner.py temp/sample1.ipynb
 ```
 first parameter is a path to main script, second is a path to save notebook.
+
+# Evaluation
+
+To evaluate predictors on train and evaluation datasets, the following command was used
+```
+PYTHONPATH=$(pwd)/..:$PYTHONPATH python predictor_validator.py Id Zeros ColorCounting Repeating Fractal
+```
+Class name | Train | Evaluation
+-----------|-------|-----------
+IdPredictor | 4 / 0 / 400 | 2 / 0 / 400
+ZerosPredictor | 0 / 0 / 400 | 0 / 0 / 400
+ColorCountingPredictor | 16 / 5 / 262 | 2 / 1 / 270
+RepeatingPredictor | 0 / 0 / 17 | 0 / 0 / 23
+FractalPredictor | 1 / 1 / 17 | 2 / 1 / 23
+ResizingPredictor | 2 / 2 / 17 | 1 / 1 / 23
+ConstantShaper | 6 / 5 / 56 | 3 / 2 / 43
+BoostingTreePredictor | 217 / 31 / 262 | 188 / 8 / 270
