@@ -6,6 +6,7 @@ from base.field import *
 
 
 class IOData:
+    __slots__ = ["input_field", "output_field"]
     def __init__(self, data=None, input_field=None, output_field=None):
         #data['train'][0]['input']
         self.input_field = input_field
@@ -49,25 +50,26 @@ class IOData:
 
 
 class Sample:
+    __slots__ = ["name", "train", "test"]
     def __init__(self, name, path):
         with open(path) as f:
             data = json.load(f)
         self.name = name
-        self._train = [
+        self.train = [
             IOData(sample)
             for sample in data.get('train', [])]
-        self._test = [
+        self.test = [
             IOData(sample)
             for sample in data.get('test', [])
         ]
 
-    @property
-    def train(self):
-        return self._train
+    # @property
+    # def train(self):
+    #     return self._train
 
-    @property
-    def test(self):
-        return self._test
+    # @property
+    # def test(self):
+    #     return self._test
     
     def predict(self, predictors):
         predictions = []

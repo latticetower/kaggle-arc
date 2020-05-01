@@ -13,7 +13,7 @@ from predictors.color_counting import ColorCountingPredictor
 from predictors.shapes import RepeatingPredictor, FractalPredictor, ResizingPredictor, MirrorPredictor, ConstantShaper
 from predictors.boosting_tree import BoostingTreePredictor
 from predictors.convolution import ConvolutionPredictor
-from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoostingTreePredictor2
+from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoostingTreePredictor2, GraphBoostingTreePredictor3
 
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
@@ -26,7 +26,7 @@ predictor_args = [
     RepeatingPredictor,
     FractalPredictor,
     ResizingPredictor,
-    #GraphBoostingTreePredictor2,#no impact
+    GraphBoostingTreePredictor3,#no impact
     ConstantShaper,
     BoostingTreePredictor,
     #FillPredictor,

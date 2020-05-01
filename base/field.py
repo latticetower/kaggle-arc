@@ -14,7 +14,7 @@ from itertools import product
 from collections import OrderedDict
 import networkx as nx
 
-
+from typing import NamedTuple
 
 def binary_dice(a, b):
     s = (np.sum(a) + np.sum(b))
@@ -28,12 +28,15 @@ def multiclass_dice(a, b, c):
 
 
 class Field:
+    __slots__ = ["data", "multiplier"]
+    
     def __init__(self, data):
         if isinstance(data, list):
             self.data = np.asarray([[ (x if x >= 0 else 10 - x) for x in line ] for line in data], dtype=np.uint8)
         else:
             self.data = data.copy()
         self.multiplier = 0.5
+
     def get(self, i, j, default_color=0):
         if i < 0 or j < 0:
             return default_color
@@ -56,6 +59,7 @@ class Field:
     @property
     def dtype(self):
         return self.data.dtype
+
     @property
     def data_splitted(self):
         return np.stack([1.0*(self.data == i) for i in range(10)])

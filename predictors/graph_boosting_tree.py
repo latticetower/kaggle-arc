@@ -288,7 +288,7 @@ class GraphBoostingTreePredictor2(Predictor):
     
 
 class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
-    def __init__(self, n_estimators=10):
+    def __init__(self, n_estimators=100):
         #self.xgb_binary =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1)
         #self.xgb =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1,
         #    objective="multi:softmax", num_class=10)
@@ -316,6 +316,10 @@ class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
         feat, target, _ = BTFeatureExtractor.get_features(iodata_list)
         self.xgb.fit(feat, target, verbose=-1)
         #next - train xgboost
+
+    def validate_binary(self, iodata_list):
+        train_x_binary, train_y_binary = self._make_train_binary_features(iodata_list)
+        return self.xgb_binary.predict(train_x_binary), train_y_binary
 
     def predict(self, field, return_binary=False):
         if isinstance(field, IOData):
@@ -356,5 +360,5 @@ class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
             yield Field(prediction_data)
 
     def __str__(self):
-        return "GraphBoostingTreePredictor2()"
+        return "GraphBoostingTreePredictor3()"
     
