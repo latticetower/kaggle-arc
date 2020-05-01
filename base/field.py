@@ -8,6 +8,7 @@ except:
     pass
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 import torch
 from itertools import product
@@ -15,6 +16,8 @@ from collections import OrderedDict
 import networkx as nx
 
 from typing import NamedTuple
+
+from constants import *
 
 def binary_dice(a, b):
     s = (np.sum(a) + np.sum(b))
@@ -93,10 +96,23 @@ class Field:
         if ax is None:
             plt.figure(figsize=(self.width*self.multiplier, self.height*self.multiplier))
             ax = plt.gca()
-        ax.imshow(self.data)
+            #print(11)
+        ax.imshow(self.data, cmap=COLORMAP, norm=NORM)
+        # sns.cubehelix_palette(10, as_cmap=True),
+        #ax.axis("off")
+        for edge, spine in ax.spines.items():
+            spine.set_visible(False)
+        ax.set_xticks(np.arange(self.data.shape[1])+.5, minor=True)
+        ax.set_yticks(np.arange(self.data.shape[0])+.5, minor=True)
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.grid(which="minor", color="black", linestyle='-', linewidth=1)
+        ax.tick_params(which="minor", bottom=False, left=False)
+        ax.set_aspect("equal")
+        #ax.figure.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax)
         if label is not None:
             ax.set_title(label)
-        plt.axis("off")
+        
 
     @staticmethod
     def compare_length(a, b):
