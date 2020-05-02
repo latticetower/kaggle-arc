@@ -60,6 +60,7 @@ class IOData:
 
 class Sample:
     __slots__ = ["name", "train", "test"]
+    
     def __init__(self, name, path):
         with open(path) as f:
             data = json.load(f)
@@ -75,10 +76,14 @@ class Sample:
     # @property
     # def train(self):
     #     return self._train
-
+    # 
     # @property
     # def test(self):
     #     return self._test
+    # 
+    # @property
+    # def name(self):
+    #     return self._name
     
     def predict(self, predictors):
         predictions = []

@@ -21,7 +21,8 @@ from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoos
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
 
-def evaluate_on_dataset(predictor_class, ds, cutoff=1.0, draw_results=True, imagedir="../temp/images"):
+def evaluate_on_dataset(predictor_class, ds, cutoff=1.0, draw_results=True,
+        imagedir="../temp/images", dataset_id=0):
     nsamples = 0
     train1 = 0
     test1 = 0
@@ -44,12 +45,12 @@ def evaluate_on_dataset(predictor_class, ds, cutoff=1.0, draw_results=True, imag
             train1 += 1
         if score_test >= cutoff:
             test1 += 1
-        if draw_results:
+        if draw_results:  # and score_train == 1 and score_test < 1:
             title = f"Image {i}: train={score_train:2.2f}, test={score_test:2.2f}\n"
             sample.show(predictor=predictor, title=title)
             #bbox_inches='tight',
             #plt.tight_layout()
-            plt.savefig(os.path.join(imagedir, f"image_{score_train:0.2f}_{score_test:0.2f}_{i:03d}.png"))
+            plt.savefig(os.path.join(imagedir, f"image_{dataset_id}_{score_train:0.2f}_{score_test:0.2f}_{i:03d}.png"))
             plt.close('all')
             
     return train1, test1, nsamples, params
@@ -75,7 +76,7 @@ for name in names:
     #     continue
     all_results = [name]
     for i, ds in enumerate([train_ds, eval_ds]):
-        result = evaluate_on_dataset(predictor_class, ds, cutoff=1.0, imagedir=imagedir)
+        result = evaluate_on_dataset(predictor_class, ds, cutoff=1.0, imagedir=imagedir, dataset_id=i)
         params = result[-1]
         with open(os.path.join(savedir, f"{name}_{i}.json"), 'w') as f:
             json.dump(params, f)
