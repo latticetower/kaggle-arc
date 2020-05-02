@@ -7,9 +7,8 @@ from itertools import islice
 
 from base.field import *
 
-
 class IOData:
-    __slots__ = ["input_field", "output_field"]
+    __slots__ = ["input_field", "output_field", "colormap"]
     def __init__(self, data=None, input_field=None, output_field=None):
         #data['train'][0]['input']
         self.input_field = input_field
@@ -19,7 +18,37 @@ class IOData:
                 self.input_field = Field(data['input'])
             if 'output' in data:
                 self.output_field = Field(data['output'])
+        self.colormap = None
+    
+    @property
+    def input_processed(self):
+        if self.colormap is None:
+            self.colormap = build_colormap(self.input_field.data, self.output_field.data)
+        data = [
+            [ self.colormap.get(x, x) for x in line ]
+            for line in self.input_field.data
+        ]
+        return Field(data)
 
+    @property
+    def output_processed(self):
+        if self.colormap is None:
+            self.colormap = build_colormap(self.input_field.data, self.output_field.data)
+        data = [
+            [ self.colormap.get(x, x) for x in line ]
+            for line in self.output_field.data
+        ]
+        return Field(data)
+
+    def reconstruct(self, data):
+        if self.colormap is None:
+            return data
+        new_data = [
+            [ self.colormap.get(x, x) for x in line ]
+            for line in data
+        ]
+        return Field(new_data)
+    
     def show(self, fig=None, axes=None, predictor=None, npredictions=1):
         if fig is None:
             if predictor is not None:

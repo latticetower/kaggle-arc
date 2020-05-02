@@ -129,8 +129,8 @@ class BTFeatureExtractor:
         feat = []
         target = []
         for i, iodata in enumerate(iodata_list):
-            input_field = iodata.input_field
-            output_field = iodata.output_field
+            input_field = iodata.input_processed
+            output_field = iodata.output_processed
             nrows, ncols = input_field.shape
 
             target_rows, target_cols = output_field.shape
@@ -157,16 +157,17 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
 
     def predict(self, field):
         if isinstance(field, IOData):
-            for v in self.predict(field.input_field):
-                yield v
+            for v in self.predict(field.input_field.data):
+                yield field.reconstruct(v)
             return
-        repainter = Repaint(field.data)
+        #repainter = Repaint(field.data)
         nrows, ncols = field.shape
-        feat = BTFeatureExtractor.make_features(field)
+        feat = BTFeatureExtractor.make_features(field.processed)
         preds = self.xgb.predict(feat).reshape(nrows, ncols)
         preds = preds.astype(int)#.tolist()
-        result = repainter(preds).tolist()
-        yield Field(preds)
+        preds = field.reconstruct(preds)
+        #result = repainter(preds).tolist()
+        yield preds
 
     def __str__(self):
         return "BoostingTreePredictor()"

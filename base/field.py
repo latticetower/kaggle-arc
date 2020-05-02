@@ -30,8 +30,27 @@ def multiclass_dice(a, b, c):
     return binary_dice(1*(a == c), 1*(b==c))
 
 
+def build_colormap(i, o=None, bg=0):
+    colormap = {bg: 0}
+    current_id = 1
+    for line in i:
+        for x in line:
+            if x in colormap:
+                continue
+            colormap[x] = current_id
+            current_id += 1
+    if o is not None:
+        for line in o:
+            for x in line:
+                if x in colormap:
+                    continue
+                colormap[x] = current_id
+                current_id += 1
+    return colormap
+
+
 class Field:
-    __slots__ = ["data", "multiplier"]
+    __slots__ = ["data", "multiplier", "colormap"]
     
     def __init__(self, data):
         if isinstance(data, list):
@@ -39,6 +58,7 @@ class Field:
         else:
             self.data = data.copy()
         self.multiplier = 0.5
+        self.colormap = None
 
     def get(self, i, j, default_color=0):
         if i < 0 or j < 0:
@@ -46,6 +66,20 @@ class Field:
         if i >= self.data.shape[0] or j >= self.data.shape[1]:
             return default_color
         return self.data[i, j]
+
+    @property
+    def processed(self):
+        if self.colormap is None:
+            self.colormap = build_colormap(self.data, o=None, bg=0)
+        new_data = [[self.colormap.get(x, x) for x in line] for line in self.data]
+        return Field(new_data)
+
+    def reconstruct(self, data):
+        if self.colormap is None:
+            return data
+        rev = {v : k for k, v in self.colormap.items()}
+        new_data = [[rev.get(x, x) for x in line] for line in data]
+        return Field(new_data)
         
     @property
     def height(self):

@@ -31,4 +31,4 @@ RepeatingPredictor | 0 / 0 / 17 | 0 / 0 / 23
 FractalPredictor | 1 / 1 / 17 | 2 / 1 / 23
 ResizingPredictor | 2 / 2 / 17 | 1 / 1 / 23
 ConstantShaper | 4 / 4 / 15 | 3 / 3 / 10
-BoostingTreePredictor | 217 / 31 / 262 | 188 / 8 / 270
+BoostingTreePredictor | 136 / 24 / 262 | 134 / 8 / 270
