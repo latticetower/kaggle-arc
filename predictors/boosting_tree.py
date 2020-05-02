@@ -3,7 +3,8 @@ Based on https://www.kaggle.com/meaninglesslives/using-decision-trees-for-arc
 """
 from xgboost import XGBClassifier
 from itertools import product
-
+import itertools
+import numpy as np
 from base.field import Field
 from base.iodata import IOData
 
@@ -129,8 +130,11 @@ class BTFeatureExtractor:
         feat = []
         target = []
         for i, iodata in enumerate(iodata_list):
-            input_field = iodata.input_processed
-            output_field = iodata.output_processed
+            if isinstance(iodata, IOData):
+                input_field = iodata.input_processed.data
+                output_field = iodata.output_processed.data
+            else:
+                input_field, output_field = iodata
             nrows, ncols = input_field.shape
 
             target_rows, target_cols = output_field.shape
@@ -141,9 +145,19 @@ class BTFeatureExtractor:
                 not_valid=1
                 return None, None, 1
 
-            feat.extend(BTFeatureExtractor.make_features(input_field))
-            target.extend(np.array(output_field.data).reshape(-1,))
+            feat.extend(BTFeatureExtractor.make_features(Field(input_field)))
+            target.extend(np.array(output_field).reshape(-1,))
         return np.array(feat), np.array(target), 0
+
+
+def get_augmented_iodata(i, o):
+    values = list(set(np.unique(i)) | set(np.unique(o)))
+    permutations = list(set(tuple(np.random.permutation(len(values))) for k in range(5)))
+    for permutation in permutations:
+        rv = {k: values[v] for k, v in zip(values, permutation)}
+        inp = np.asarray([[rv[x] for x in line] for line in i])
+        out = np.asarray([[rv[x] for x in line] for line in o])
+        yield inp, out
 
 
 class BoostingTreePredictor(Predictor, AvailableEqualShape):
@@ -152,12 +166,19 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
             objective="multi:softmax", num_class=10)
 
     def train(self, iodata_list):
+        iodata_list_ = list(
+            itertools.chain(*[
+                get_augmented_iodata(
+                    iodata.input_processed.data, iodata.output_processed.data
+                )
+                for iodata in iodata_list
+            ]))
         feat, target, _ = BTFeatureExtractor.get_features(iodata_list)
         self.xgb.fit(feat, target, verbose=-1)
 
     def predict(self, field):
         if isinstance(field, IOData):
-            for v in self.predict(field.input_field.data):
+            for v in self.predict(field.input_processed.data):
                 yield field.reconstruct(v)
             return
         #repainter = Repaint(field.data)

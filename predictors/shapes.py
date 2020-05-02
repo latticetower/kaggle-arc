@@ -144,7 +144,7 @@ def process_iodata_input(iodata, pattern, crop_func=crop_data):
         [ bg.get(x, 0) for x in line ]
         for line in cropped_data
     ]
-    return np.asarray(data)
+    return iodata.reconstruct(np.asarray(data))
 
 
 class ConstantShaper(Predictor):
