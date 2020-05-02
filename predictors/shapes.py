@@ -144,7 +144,8 @@ def process_iodata_input(iodata, pattern, crop_func=crop_data):
         [ bg.get(x, 0) for x in line ]
         for line in cropped_data
     ]
-    return iodata.reconstruct(np.asarray(data))
+    data = Field(data)
+    return iodata.reconstruct(data).data
 
 
 class ConstantShaper(Predictor):
@@ -228,6 +229,7 @@ class ConstantShaper(Predictor):
                 list(zip(*np.stack([self.input_pattern, self.crop_func(field.processed.data)], 0).reshape(2, -1)))
             ))
             result = np.asarray([ [ color_convertor.get(x, x) for x in line ] for line in self.pattern ])
+            result = Field(result)
             yield field.reconstruct(result)
             #return
         data = self.crop_func(field.processed.data)
@@ -251,7 +253,7 @@ class ConstantShaper(Predictor):
                 continue
             coords = np.where(self.pattern == key)
             result[coords] = value[0]
-        yield field.reconstruct(result)
+        yield field.reconstruct(Field(result))
 
         
     def __str__(self):
