@@ -126,8 +126,8 @@ def change_colors(data, background_colors=[]):
     return data_modified
 
 def process_iodata_input(iodata, pattern, crop_func=crop_data):
-    i = iodata.input_processed
-    o = iodata.output_processed
+    i = iodata.input_field
+    o = iodata.output_field
     #bg = {c: 0 for c in o.data[np.where(pattern == 0)]}
     bg = dict(list(zip(*np.stack([o.data, pattern], 0).reshape(2, -1))))
     # current_id = 1
@@ -221,18 +221,19 @@ class ConstantShaper(Predictor):
 
     def predict(self, field):
         if isinstance(field, IOData):
-            for v in self.predict(field.input_processed):
-                yield field.reconstruct(v)
+            for v in self.predict(field.input_field):
+                yield v
+                #yield field.reconstruct(v)
             return
         if self.input_pattern is not None:
             color_convertor = dict(set(
-                list(zip(*np.stack([self.input_pattern, self.crop_func(field.processed.data)], 0).reshape(2, -1)))
+                list(zip(*np.stack([self.input_pattern, self.crop_func(field.data)], 0).reshape(2, -1)))
             ))
             result = np.asarray([ [ color_convertor.get(x, x) for x in line ] for line in self.pattern ])
             result = Field(result)
-            yield field.reconstruct(result)
+            yield result  # field.reconstruct(result)
             #return
-        data = self.crop_func(field.processed.data)
+        data = self.crop_func(field.data)
         h, w = data.shape
         h = min(self.pattern.shape[0], h)
         w = min(self.pattern.shape[1], w)
@@ -253,7 +254,7 @@ class ConstantShaper(Predictor):
                 continue
             coords = np.where(self.pattern == key)
             result[coords] = value[0]
-        yield field.reconstruct(Field(result))
+        yield Field(result)  # field.reconstruct(Field(result))
 
         
     def __str__(self):
