@@ -74,11 +74,14 @@ class Field:
         new_data = [[self.colormap.get(x, x) for x in line] for line in self.data]
         return Field(new_data)
 
-    def reconstruct(self, data):
+    def reconstruct(self, field):
         if self.colormap is None:
-            return data
-        rev = {v : k for k, v in self.colormap.items()}
-        new_data = [[rev.get(x, x) for x in line] for line in data]
+            return field
+        rev = {v : k for k, v in self.colormap.items() }
+        rev = {k : v for k, v in rev.items() if k != v }
+        if len(rev) < 1:
+            return field
+        new_data = [[rev.get(x, x) for x in line] for line in field.data]
         return Field(new_data)
         
     @property

@@ -22,11 +22,15 @@ class IOData:
     
     @property
     def input_processed(self):
+        i = self.input_field.data
+        o = self.output_field
+        if o is not None:
+            o = o.data
         if self.colormap is None:
-            self.colormap = build_colormap(self.input_field.data, self.output_field.data)
+            self.colormap = build_colormap(i, o)
         data = [
             [ self.colormap.get(x, x) for x in line ]
-            for line in self.input_field.data
+            for line in i
         ]
         return Field(data)
 
@@ -40,12 +44,12 @@ class IOData:
         ]
         return Field(data)
 
-    def reconstruct(self, data):
+    def reconstruct(self, field):
         if self.colormap is None:
-            return data
+            return field
         new_data = [
             [ self.colormap.get(x, x) for x in line ]
-            for line in data
+            for line in field.data
         ]
         return Field(new_data)
     
