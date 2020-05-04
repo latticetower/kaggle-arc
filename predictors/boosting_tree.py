@@ -10,6 +10,8 @@ from base.iodata import IOData
 
 from predictors.basic import *
 from operations.basic import Repaint
+from operations.reversible import *
+
 
 class BTFeatureExtractor:
     @staticmethod
@@ -131,21 +133,31 @@ class BTFeatureExtractor:
         target = []
         for i, iodata in enumerate(iodata_list):
             if isinstance(iodata, IOData):
-                input_field = iodata.input_field.data
-                output_field = iodata.output_field.data
+                input_field = iodata.input_field
+                output_field = iodata.output_field
             else:
                 input_field, output_field = iodata
             nrows, ncols = input_field.shape
+            output_field = output_field.data
 
             target_rows, target_cols = output_field.shape
-            
-            if (target_rows != nrows) or (target_cols != ncols):
+            if output_field.shape == (1, 1): #and input_field.shape != output_field.shape:
+                #print(input_field.shape)
+                #print(input_field)
+                output_field = increase2shape(output_field, input_field.shape)
+                # i = np.asarray([[ np.sum(input_field == i) for i in range(10)]])
+                # o = output_field
+                # print(i.shape, o.shape)
+                # feat.extend(i)
+                # target.extend(o)
+                # continue
+            elif (target_rows != nrows) or (target_cols != ncols):
                 print('Number of input rows:', nrows,'cols:',ncols)
                 print('Number of target rows:',target_rows,'cols:',target_cols)
                 not_valid=1
                 return None, None, 1
 
-            feat.extend(BTFeatureExtractor.make_features(Field(input_field)))
+            feat.extend(BTFeatureExtractor.make_features(Field(input_field.data)))
             target.extend(np.array(output_field).reshape(-1,))
         return np.array(feat), np.array(target), 0
 
@@ -193,4 +205,125 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
 
     def __str__(self):
         return "BoostingTreePredictor()"
+    
+
+class BoostingTreePredictor2(Predictor):
+    def __init__(self):
+        self.xgb =  XGBClassifier(n_estimators=10, booster="dart", n_jobs=-1,
+            objective="multi:softmax", num_class=10) # currently not in use
+        self.bgr_color = None
+
+    def is_available(self, iodata_list):
+        all_sizes = set()
+        for iodata in iodata_list:
+            if iodata.input_field.height <= iodata.output_field.height or \
+                    iodata.input_field.width <= iodata.output_field.width:
+                return False
+            m1 = iodata.output_field.height  # // iodata.input_field.height
+            m2 = iodata.output_field.width  # // iodata.input_field.width
+            all_sizes.add((m1, m2))
+        if len(all_sizes) == 1:
+            h, w = all_sizes.pop()
+            if w > 1 and h > 1:
+                self.m1 = h
+                self.m2 = w
+                self.op = WrappedOperation(
+                    ReversibleSplit((h, w)),
+                    ReversibleCombine((h, w)))
+                return True
+
+        return False
+
+    def get_bgr_color(self, iodata_list):
+        features = np.asarray([[np.sum(x[0].data == i) for i in range(10)] for x in iodata_list])
+        targets = np.asarray([[np.sum(x[1].data == i) for i in range(10)] for x in iodata_list])
+        ids = np.sum(features > 0, 1) > 1
+        bgr = (targets[ids] == 0)*features[ids]
+        bgr_color = np.argwhere(bgr.sum(0)).flatten()
+        return bgr_color
+
+    def get_bgr_color_by_features(self, features):
+        print(features)
+        #features = np.asarray([[np.sum(x[0].data == i) for i in range(10)] for x in iodata_list])
+        #targets = np.asarray([[np.sum(x[1].data == i) for i in range(10)] for x in iodata_list])
+        colors = np.argmax(features, 1)
+        
+        return np.unique(colors)
+         
+    def get_target_color(self, features, bgr_color):
+        a = np.argwhere(features > 0).flatten()
+        for x in a:
+            if not x in bgr_color:
+                return x
+        for xs in [a, bgr_color, [0]]:
+            if len(xs) > 0:
+                return xs[0]
+
+    def train(self, iodata_list):
+        all_samples = []
+        for iodata in iodata_list:
+            i, o = self.op.wrap(iodata)
+            all_samples.extend(list(zip(
+                [x for xs in i for x in xs],
+                [x for xs in o for x in xs])))
+        #print(all_samples)
+        #print(all_samples)
+        self.bgr_color = self.get_bgr_color(all_samples)
+        feat, target, _ = BTFeatureExtractor.get_features(all_samples)
+        # print(feat.shape, target.shape)
+        self.xgb.fit(feat, target, verbose=-1)
+
+    def predict(self, field):
+        if isinstance(field, IOData):
+            for v in self.predict(field.input_field):
+                yield v
+            return
+        #repainter = Repaint(field.data)
+        nrows, ncols = field.shape
+        feature_field, postprocess = self.op.run(field)
+        all_lines = []
+        if self.bgr_color is not None and len(self.bgr_color) > 0:
+            features = np.asarray([
+                [ np.sum(x.data == i) for i in range(10)]
+                for line in feature_field for x in line
+            ])
+            #print(features.shape)
+            bgr_color = self.get_bgr_color_by_features(features)
+            #print(bgr_color)
+            for line in feature_field:
+                line_result = []
+                for x in line:
+                    features = np.asarray([ np.sum(x.data == i) for i in range(10)])
+                    #bgr_color = self.get_bgr_color_by_features(features)
+                    color = self.get_target_color(features, bgr_color=bgr_color)
+                    preds = Field([[color]])
+                    line_result.append(preds)
+                all_lines.append(line_result)
+            result = postprocess(all_lines)
+            yield result
+            return
+        for line in feature_field:
+            line_result = []
+            for x in line:
+                nrows, ncols = x.shape
+                feat = BTFeatureExtractor.make_features(x)
+                features = np.asarray([ np.sum(x.data) == i for i in range(10)])
+                
+                preds = self.xgb.predict(feat).reshape(nrows, ncols)
+                preds = preds.astype(int)#.tolist()
+                #preds = field.reconstruct(Field(preds))
+                preds = [[decrease2color(preds)]]
+                if self.bgr_color is not None:
+                    #print(self.bgr_color)
+                    #bgr_color = self.get_bgr_color(all_samples)
+                    color = self.get_target_color(features, self.bgr_color)
+                    preds = Field([[color]])
+                line_result.append(preds)
+            all_lines.append(line_result)
+        result = postprocess(all_lines)
+        #result = repainter(preds).tolist()
+        yield result
+
+    def __str__(self):
+        return "BoostingTreePredictor2()"
     
