@@ -131,8 +131,8 @@ class BTFeatureExtractor:
         target = []
         for i, iodata in enumerate(iodata_list):
             if isinstance(iodata, IOData):
-                input_field = iodata.input_processed.data
-                output_field = iodata.output_processed.data
+                input_field = iodata.input_field.data
+                output_field = iodata.output_field.data
             else:
                 input_field, output_field = iodata
             nrows, ncols = input_field.shape
@@ -169,24 +169,25 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
         iodata_list_ = list(
             itertools.chain(*[
                 get_augmented_iodata(
-                    iodata.input_processed.data, iodata.output_processed.data
+                    iodata.input_field.data, iodata.output_field.data
                 )
                 for iodata in iodata_list
             ]))
-        feat, target, _ = BTFeatureExtractor.get_features(iodata_list)
+        feat, target, _ = BTFeatureExtractor.get_features(iodata_list_)
         self.xgb.fit(feat, target, verbose=-1)
 
     def predict(self, field):
         if isinstance(field, IOData):
-            for v in self.predict(field.input_processed.data):
-                yield field.reconstruct(v)
+            for v in self.predict(field.input_field):
+                yield v
             return
         #repainter = Repaint(field.data)
         nrows, ncols = field.shape
-        feat = BTFeatureExtractor.make_features(field.processed)
+        feat = BTFeatureExtractor.make_features(field)
         preds = self.xgb.predict(feat).reshape(nrows, ncols)
         preds = preds.astype(int)#.tolist()
-        preds = field.reconstruct(preds)
+        #preds = field.reconstruct(Field(preds))
+        preds = Field(preds)
         #result = repainter(preds).tolist()
         yield preds
 
