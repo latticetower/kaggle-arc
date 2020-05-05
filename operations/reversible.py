@@ -13,19 +13,16 @@ class ReversibleOperation:
 
 
 def split2shape(field, target_shape, hsep=0, wsep=0, outer_sep=False):
-    #print(target_shape)
     h, w = target_shape
     fh, fw = field.shape
     hpart = (fh - outer_sep*hsep) // h - hsep
     wpart = (fw - outer_sep*wsep) // w - wsep
-    print(hpart, wpart, h, w, fh, fw)
-        
+
     splitted = []
-    #print(hpart, wpart, h, fh, w, fw)
+    
     for i in range(h):
         line = []
         for j in range(w):
-            #print(i, j)
             subfield = Field(
                 field.data[
                     outer_sep*hsep + i*(hpart + hsep) : outer_sep*hsep + i*(hpart+hsep) + hpart, 
@@ -47,7 +44,7 @@ def collect_field(multifield, hsep=0, wsep=0, outer_sep=False, sep_color=0):
             line_data.append(x.data)
             if wsep > 0:
                 line_data.append(sep)
-        if not outer_sep or wsep == 0:
+        if not outer_sep and wsep > 0:
             line_data = line_data[:-1]
         line_data = np.concatenate(line_data, 1)  # np.concatenate([x.data for x in line], 1)
         all_lines.append(line_data)
@@ -61,7 +58,7 @@ def collect_field(multifield, hsep=0, wsep=0, outer_sep=False, sep_color=0):
         line_data.append(l)
         if hsep > 0:
             line_data.append(sep)
-    if not outer_sep:
+    if not outer_sep and hsep > 0:
         line_data = line_data[:-1]
     all_lines = np.concatenate(line_data, 0)
     return Field(all_lines)
@@ -69,7 +66,6 @@ def collect_field(multifield, hsep=0, wsep=0, outer_sep=False, sep_color=0):
 
 def increase2shape(data, target_shape):
     h, w = target_shape
-    #print(data.shape, [data for i in range(w)])
     line = np.concatenate([data for i in range(w)], 1)
     d = np.concatenate([line for j in range(h)], 0)
     return d
@@ -91,7 +87,6 @@ class ReversibleSplit(ReversibleOperation):
         self.sep_color = sep_color
 
     def do(self, field):
-        #field.data.shape[0]//self.h
         splitted = split2shape(field, self.shape,
             hsep=self.hsep, wsep=self.wsep, outer_sep=self.outer_sep)
         return splitted
