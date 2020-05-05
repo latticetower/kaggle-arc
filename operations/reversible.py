@@ -122,6 +122,7 @@ class ReversibleCombine(ReversibleOperation):
         return f"ReversibleCombine({self.shape})"
 
 
+
 class WrappedOperation:
     def __init__(self, preprocess=None, postprocess=None):
         self.preprocess = preprocess
@@ -131,11 +132,17 @@ class WrappedOperation:
         i = iodata.input_field
         o = iodata.output_field
         forward_i = self.preprocess.do(i)
-        reverse_o = self.postprocess.od(o)
+        if self.postprocess is None:
+            reverse_o = o
+        else:
+            reverse_o = self.postprocess.od(o)
         return forward_i, reverse_o
     
     def run(self, field, prev=lambda x: x):
         x = self.preprocess.do(field)
-        op = lambda t: prev(self.postprocess.do(t))
+        if self.postprocess is None:
+            op = prev
+        else:
+            op = lambda t: prev(self.postprocess.do(t))
         return x, op
 

@@ -32,4 +32,9 @@ FractalPredictor | 1 / 1 / 17 | 2 / 1 / 23
 ResizingPredictor | 2 / 2 / 17 | 1 / 1 / 23
 ConstantShaper | 4 / 4 / 15 | 3 / 3 / 10
 BoostingTreePredictor | 136 / 24 / 262 | 134 / 8 / 270
+
+No augmentation, with painter | 217 / 31 / 262 | 188 / 8 / 270
+Augmentation + repainter: | 79 / 8 / 262 | 43 / 2 / 270
+Augmentation, w/o repainter: | 83 / 7 / 262 | 37 / 1 / 270
+
 BoostingTreePredictor2 | 2 / 1 / 31 | 3 / 3 / 27

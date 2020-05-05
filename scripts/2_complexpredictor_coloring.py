@@ -26,7 +26,7 @@ predictor_args = [
     RepeatingPredictor,
     FractalPredictor,
     ResizingPredictor,
-    #GraphBoostingTreePredictor3,#no impact
+    GraphBoostingTreePredictor3,#no impact
     ConstantShaper,
     BoostingTreePredictor,
     BoostingTreePredictor2
