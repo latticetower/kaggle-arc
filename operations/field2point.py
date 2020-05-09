@@ -72,11 +72,11 @@ class SimpleSummarizeOperation(IrreversibleOperation):
 
     def train(self, complex_iodata_list):
         candidates = [
-            #most_frequent_color,
+            most_frequent_color,
             least_frequent_color,
-            #count_color_area,
-            #count_color_area_bg,
-            #count_colors
+            count_color_area,
+            count_color_area_bg,
+            count_colors
         ]
         best_candidate = candidates[0]
         best_bg = dict()

@@ -32,6 +32,26 @@ def split2shape(field, target_shape, hsep=0, wsep=0, outer_sep=False):
     return splitted
 
 
+def split_by_shape(field, subshape, hsep=0, wsep=0, outer_sep=False):
+    h, w = subshape
+    fh, fw = field.shape
+    #hpart = (fh - outer_sep*hsep) // h - hsep
+    #wpart = (fw - outer_sep*wsep) // w - wsep
+
+    splitted = []
+    
+    for i in range(outer_sep*1, fh, h + hsep):
+        line = []
+        for j in range(outer_sep*1, fw, w + wsep):
+            subfield = Field(
+                field.data[
+                    i : i + h, 
+                    j : j + w])
+            line.append(subfield)
+        splitted.append(line)
+    return splitted
+
+
 def collect_field(multifield, hsep=0, wsep=0, outer_sep=False, sep_color=0):
     all_lines = []
     for line in multifield:
@@ -79,15 +99,16 @@ def decrease2color(data, background=0):
 
 
 class ReversibleSplit(ReversibleOperation):
-    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0):
+    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0, splitter_func=split2shape):
         self.shape = shape
         self.hsep = hsep
         self.wsep = wsep
         self.outer_sep = outer_sep
         self.sep_color = sep_color
+        self.splitter_func = splitter_func
 
     def do(self, field):
-        splitted = split2shape(field, self.shape,
+        splitted = self.splitter_func(field, self.shape,
             hsep=self.hsep, wsep=self.wsep, outer_sep=self.outer_sep)
         return splitted
 
@@ -101,12 +122,13 @@ class ReversibleSplit(ReversibleOperation):
 
 
 class ReversibleCombine(ReversibleOperation):
-    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0):
+    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0, splitter_func=split2shape):
         self.shape = shape
         self.hsep = hsep
         self.wsep = wsep
         self.outer_sep = outer_sep
         self.sep_color = sep_color
+        self.splitter_func = splitter_func
         
     def do(self, multifield):
         field = collect_field(multifield,
@@ -114,7 +136,7 @@ class ReversibleCombine(ReversibleOperation):
         return field
     
     def od(self, field):
-        splitted = split2shape(field, self.shape,
+        splitted = self.splitter_func(field, self.shape,
             hsep=self.hsep, wsep=self.wsep, outer_sep=self.outer_sep)
         return splitted
     
