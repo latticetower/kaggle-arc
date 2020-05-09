@@ -17,6 +17,7 @@ from predictors.shapes import RepeatingPredictor, FractalPredictor, ResizingPred
 from predictors.boosting_tree import BoostingTreePredictor, BoostingTreePredictor2, BoostingTreePredictor3
 from predictors.convolution import ConvolutionPredictor
 from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoostingTreePredictor2, GraphBoostingTreePredictor3
+from predictors.decision_tree import AugmentedPredictor
 
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
