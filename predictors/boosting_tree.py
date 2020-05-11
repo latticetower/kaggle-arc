@@ -349,18 +349,29 @@ class BoostingTreePredictor2(Predictor):
         #        print(x.data)
         #print(field.shape, self.m1, self.m2)
         #print(feature_field)
-        features = np.asarray([ [ np.sum(x == c) for c in range(10)]
-            for l in feature_field for x in l])
+        features = np.asarray([
+            [np.sum(x.data==c) for c in range(10)]
+            for x in feature_field.flat_iter()])
+        
         bg = self.get_bgr_color_by_features(features)
-        #print(features)
-        #print(bg[0])
         bg = bg[0] if len(bg) > 0 else None
-        o = [
-            [
-                self.simple_operation.do(x.data, bg=bg) for x in line
-            ]
-            for line in feature_field
-        ]
+        def make_subfield_func(bg):
+            #features = [np.sum(x == c) for c in range(10)]
+            return lambda x: self.simple_operation.do(x, bg=bg)
+        o = feature_field.map(make_subfield_func(bg))
+        # 
+        # features = np.asarray([ [ np.sum(x == c) for c in range(10)]
+        #     for l in feature_field for x in l])
+        # bg = self.get_bgr_color_by_features(features)
+        # #print(features)
+        # #print(bg[0])
+        # bg = bg[0] if len(bg) > 0 else None
+        # o = [
+        #     [
+        #         self.simple_operation.do(x.data, bg=bg) for x in line
+        #     ]
+        #     for line in feature_field
+        # ]
         
         result = postprocess(o)
         yield result

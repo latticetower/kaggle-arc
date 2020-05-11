@@ -135,6 +135,7 @@ class Sample:
         if predictor is not None:
             if not predictor.is_available(self.train):
                 predictor=None
+            predictor.train(self.train)
         gs, train_gs, test_gs = grids
         if fig is None:
             fig = plt.figure(figsize=(ncols * w, (ntrain + ntest) * h))
