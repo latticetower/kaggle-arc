@@ -69,6 +69,18 @@ class AvailableEqualShape():
                 return False
         return True
 
+class AvailableEqualShapeAndMaxNColors():
+        
+    def is_available(self, iodata_list):
+        ncolors=4
+        for iodata in iodata_list:
+            if iodata.input_field.shape != iodata.output_field.shape:
+                return False
+            if len(np.unique(iodata.input_field.data)) > ncolors:
+                return False
+            if len(np.unique(iodata.output_field.data)) > ncolors:
+                return False
+        return True
 
 class AvailableWithIntMultiplier():
     def is_available(self, iodata_list):

@@ -31,7 +31,7 @@ predictor_args = [
     ConstantShaper,
     BoostingTreePredictor,
     BoostingTreePredictor2,
-    AugmentedPredictor
+    #AugmentedPredictor
     #FillPredictor,
     #MirrorPredictor,
     #(ConvolutionPredictor, [], {'loss': 'mse'}),

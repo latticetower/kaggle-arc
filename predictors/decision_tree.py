@@ -240,7 +240,7 @@ class Augmenter:
         return X,Y
 
 
-class AugmentedPredictor(Predictor, AvailableEqualShape):
+class AugmentedPredictor(Predictor, AvailableEqualShapeAndMaxNColors):
     def __init__(self):
         #self.value = value
         #self.multiplier = multiplier

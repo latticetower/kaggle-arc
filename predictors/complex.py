@@ -48,6 +48,7 @@ class ComplexPredictor(Predictor, AvailableAll):
     def freeze_by_score(self, iodata_list, k=3):
         scores = []
         for p in self.predictors:
+            p.freeze_by_score(iodata_list, k=k)
             score = p.validate(iodata_list, k=k)
             scores.append(score)
         ids = np.argsort(scores)[::-1]

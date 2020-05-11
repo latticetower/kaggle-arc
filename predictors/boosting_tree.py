@@ -54,9 +54,50 @@ class BTFeatureExtractor:
                 top_right = field.data[cur_row - 1, cur_col + 1]   
             
         return top_left, top_right
+        
+    @staticmethod
+    def getAround(i, j, inp, size=1):
+        #v = [-1,-1,-1,-1,-1,-1,-1,-1,-1]
+        r, c = inp.shape
+        v = []
+        sc = [0]
+        for q in range(size):
+            sc.append(q + 1)
+            sc.append(-(q+1))
+        for idx, (x,y) in enumerate(product(sc, sc)):
+            ii = (i+x)
+            jj = (j+y)
+            #v.append(-1)
+            new_el = inp.data[ii, jj] if((0<= ii < r) and (0<= jj < c)) else -1
+            v.append(new_el)
+        return v
+    
+    @classmethod
+    def getX(cls, inp, i, j, size):
+        n_inp = inp.data
+        z = [i, j]
+        r, c = inp.shape
+        
+        for m in range(5):
+            z.append(i % (m + 1))
+            z.append(j % (m + 1))
+        z.append(i + j)
+        z.append(i * j)
+        #     z.append(i%j)
+        #     z.append(j%i)
+        z.append((i+1)/(j+1))
+        z.append((j+1)/(i+1))
+        z.append(r)
+        z.append(c)
+        z.append(len(np.unique(n_inp[i,:])))
+        z.append(len(np.unique(n_inp[:,j])))
+        arnd = cls.getAround(i,j,inp,size)
+        z.append(len(np.unique(arnd)))
+        z.extend(arnd)
+        return z
 
     @staticmethod
-    def make_features(field, nfeat=13, local_neighb=5):
+    def make_features(field, nfeat=13, local_neighb=5, all_square=False):
         nrows, ncols = field.shape
         #feat = np.zeros((nrows*ncols, nfeat))
         all_features = []
@@ -67,6 +108,7 @@ class BTFeatureExtractor:
                 features = [
                     i,
                     j,
+                    i*j,
                     field.data[i, j]]
                 features.extend(
                     BTFeatureExtractor.get_moore_neighbours(field, i, j, nrows, ncols))
@@ -91,7 +133,7 @@ class BTFeatureExtractor:
                     (i + j + 1) % 2,
                     (i + ncols - j - 1) % 2, #
                     (nrows - 1 - i + ncols - j - 1),#
-                    (nrows - 1 - i + j)#
+                    (nrows - 1 - i + j) #
                 ])
                 features.extend([
                     field.get(i + k, j + v)
@@ -102,6 +144,13 @@ class BTFeatureExtractor:
                     field.data[nrows - 1 - i, ncols - 1 - j],
                     field.data[i, ncols - 1 - j]
                 ])
+                if all_square: #and field.data.shape[0] == field.data.shape[1]:
+                    features.extend([
+                        field.get(j, i),
+                        field.get(j, nrows - 1 - i),
+                        field.get(ncols - 1 - j, nrows - 1 - i),
+                        field.get(ncols - 1 - j, i)
+                    ])
                 features.extend([
                     field.data[i, j] != 0,
                     np.sum([ field.get(i+k, j+v) == color
@@ -128,9 +177,10 @@ class BTFeatureExtractor:
         return feat
 
     @staticmethod
-    def get_features(iodata_list):
+    def get_features(iodata_list, all_square=False):
         feat = []
         target = []
+            
         for i, iodata in enumerate(iodata_list):
             if isinstance(iodata, IOData):
                 input_field = iodata.input_field.data
@@ -159,7 +209,9 @@ class BTFeatureExtractor:
                 not_valid=1
                 return None, None, 1
 
-            feat.extend(BTFeatureExtractor.make_features(Field(input_field)))
+            feat.extend(BTFeatureExtractor.make_features(
+                Field(input_field),
+                all_square=all_square))
             target.extend(np.array(output_field).reshape(-1,))
         return np.array(feat), np.array(target), 0
 
@@ -180,6 +232,10 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
             objective="multi:softmax", num_class=10)
 
     def train(self, iodata_list):
+        self.all_square = np.all([
+            iodata.input_field.shape[0] == iodata.output_field.shape[1]
+            for iodata in iodata_list
+        ])
         iodata_list_ = list(
             itertools.chain(*[
                 get_augmented_iodata(
@@ -187,7 +243,7 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
                 )
                 for iodata in iodata_list
             ]))
-        feat, target, _ = BTFeatureExtractor.get_features(iodata_list)
+        feat, target, _ = BTFeatureExtractor.get_features(iodata_list, all_square=self.all_square)
         self.xgb.fit(feat, target, verbose=-1)
 
     def predict(self, field):
@@ -197,7 +253,7 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
             return
         #repainter = Repaint(field.data)
         nrows, ncols = field.shape
-        feat = BTFeatureExtractor.make_features(field)
+        feat = BTFeatureExtractor.make_features(field, all_square=self.all_square)
         preds = self.xgb.predict(feat).reshape(nrows, ncols)
         preds = preds.astype(int)#.tolist()
         #preds = field.reconstruct(Field(preds))

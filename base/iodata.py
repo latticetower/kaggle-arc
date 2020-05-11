@@ -128,7 +128,7 @@ class Sample:
             predictions.append(pred)
         return predictions
 
-    def show(self, fig=None, grids=[None, None, None], w=2, h=2, ncols=2, predictor=None, npredictions=1, title=""):
+    def show(self, fig=None, grids=[None, None, None], w=2, h=2, ncols=2, predictor=None, npredictions=3, title=""):
         ntrain = len(self.train)
         ntest = len(self.test)
         ncols += npredictions
@@ -177,7 +177,7 @@ class Sample:
             for i in range(ntest):
                 ax0 = fig.add_subplot(test_gs[i, 0])
                 ax1 = fig.add_subplot(test_gs[i, 1])
-                npredictions=1
+                #npredictions=1
                 #pred_ax = [fig.add_subplot(test_gs[i, 2+k]) for k in range(npredictions)]
                 self.test[i].show(fig=fig, axes=[ax0, ax1])
                 #predictor=predictor, npredictions=npredictions)
