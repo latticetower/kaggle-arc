@@ -78,7 +78,7 @@ class SubpatternMatcherPredictor(Predictor):
 
     def __init__(self):
         self.xgb = XGBClassifier(n_estimators=10, booster="dart", n_jobs=-1,
-            objective="multi:softmax", num_class=10) 
+            objective="multi:softmax", num_class=10)
         pass
 
     def is_available(self, iodata_list):
@@ -98,18 +98,21 @@ class SubpatternMatcherPredictor(Predictor):
             ReversibleSplit((h, w), hsep=1, wsep=1, outer_sep=False, splitter_func=split_by_shape),
             ReversibleCombine((h, w), hsep=1, wsep=1, outer_sep=False, sep_color=5, splitter_func=split_by_shape)
         )
+        self.op.train(iodata_list)
         return True
     
     def train(self, iodata_list):
         all_samples = []
+        self.op.train(iodata_list)
         for iodata in iodata_list:
             i, o = self.op.wrap(iodata)
             all_samples.append((i, o))
         all_samples = [
             (xi, xo)
             for (i, o) in all_samples
-            for li, lo in zip(i, o)
-            for xi, xo in zip(li, lo)
+            for xi, xo in zip(i.flat_iter(), o.flat_iter())
+            #for li, lo in zip(i, o)
+            #for xi, xo in zip(li, lo)
         ]
         #print(all_samples)
         feat, target, _ = BTFeatureExtractor.get_features(all_samples)
@@ -125,17 +128,15 @@ class SubpatternMatcherPredictor(Predictor):
         
         feature_field, postprocess = self.op.run(field)
         #print(feature_field)
-        lines = []
-        for line in feature_field:
-            line_result = []
-            for x in line:
-                nrows, ncols = x.shape
-                feat = BTFeatureExtractor.make_features(x)
-                preds = self.xgb.predict(feat).reshape(nrows, ncols)
-                preds = preds.astype(int)#.tolist()
-                #print(x.data)
-                line_result.append(Field(preds))
-            lines.append(line_result)
+        def predict_on_subfield(x):
+            nrows, ncols = x.shape
+            feat = BTFeatureExtractor.make_features(x)
+            preds = self.xgb.predict(feat).reshape(nrows, ncols)
+            preds = preds.astype(int)#.tolist()
+            #print(x.data)
+            return Field(preds)
+
+        lines = feature_field.map(predict_on_subfield)
         result = postprocess(lines)
         yield result
         pass

@@ -15,6 +15,7 @@ from predictors.boosting_tree import BoostingTreePredictor, BoostingTreePredicto
 from predictors.convolution import ConvolutionPredictor
 from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoostingTreePredictor2, GraphBoostingTreePredictor3
 from predictors.decision_tree import AugmentedPredictor
+from predictors.subpattern import SubpatternMatcher
 
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
@@ -31,6 +32,7 @@ predictor_args = [
     ConstantShaper,
     BoostingTreePredictor,
     BoostingTreePredictor2,
+    SubpatternMatcher
     #AugmentedPredictor
     #FillPredictor,
     #MirrorPredictor,

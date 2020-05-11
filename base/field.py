@@ -313,3 +313,28 @@ class Field:
 
                 #graph_nx.add_node()
         return graph_nx
+
+
+class ComplexField:
+    def __init__(self, data, **params):
+        self.data = data
+        self.params = params
+    
+    def shape(self):
+        if len(self.data) > 0:
+            return len(self.data), len(self.data[0])
+        return len(self.data)
+
+    def flat_iter(self):
+        for line in self.data:
+            for x in line:
+                yield x
+    def map(self, func):
+        new_data = [
+            [ func(x) for x in line ]
+            for line in self.data
+        ]
+        return ComplexField(new_data, **self.params)
+
+    def __str__(self):
+        return f"ComplexField({self.shape}, {self.params})"
