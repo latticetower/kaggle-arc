@@ -88,7 +88,8 @@ class SimpleSummarizeOperation(IrreversibleOperation):
             #candidate_bg = None
             scores = []
             for k, (inp, out) in enumerate(complex_iodata_list):
-                iodata_list = list(zip([x for xs in inp for x in xs], [x for xs in out for x in xs]))
+                iodata_list = list(zip(inp.flat_iter(), out.flat_iter()))
+                #iodata_list = list(zip([x for xs in inp for x in xs], [x for xs in out for x in xs]))
                 best_sample_score = 0
                 for bg in list(range(10)) + [ None ]:
                     score = [
