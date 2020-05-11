@@ -19,6 +19,7 @@ from predictors.convolution import ConvolutionPredictor
 from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoostingTreePredictor2, GraphBoostingTreePredictor3
 from predictors.decision_tree import AugmentedPredictor
 from predictors.subpattern import SubpatternMatcherPredictor
+from predictors.field2point import *
 
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]

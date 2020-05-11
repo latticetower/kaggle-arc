@@ -192,7 +192,7 @@ class Field:
 
     def __repr__(self):
         return "".join(self.str_iter())
-
+        
     def zeros(self, multiplier=1):
         return self.consts(value=0, multiplier=multiplier)
 

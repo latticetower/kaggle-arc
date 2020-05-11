@@ -8,7 +8,7 @@ from skimage.measure import label
 from base.iodata import *
 from base.field import *
 from predictors.boosting_tree import BTFeatureExtractor
-from predictors.basic import Predictor, AvailableEqualShape
+from predictors.basic import *
 
 
 
@@ -427,3 +427,92 @@ class ConvolutionPredictor(Predictor, AvailableEqualShape):
     def __str__(self):
         return "ConvolutionPredictor()"
     
+
+class Convolution2PointPredictor(Predictor, AvailableShape2PointOrConstColor):
+    def __init__(self, nepochs=40, loss="mse"):
+        #self.xgb =  XGBClassifier(n_estimators=25*2, booster="dart", n_jobs=-1)
+        if loss == "mse":
+            self.loss_func = torch.nn.MSELoss()
+        else:
+            self.loss_func = dice_loss
+        #print(net.parameters())
+        self.nepochs = nepochs
+        self.lr = 0.01
+        self.debug = False
+        
+    def build_model(self, feature_ids):
+        model = nn.Sequential(
+            nn.Conv2d(len(feature_ids), 128, 3, padding=1),
+            nn.LeakyReLU(),
+            nn.Conv2d(128, 64, 3, padding=1),
+            nn.LeakyReLU(),
+            nn.Conv2d(64, 32, 3, padding=1),
+            nn.LeakyReLU(),
+            #nn.Sigmoid(),
+            nn.Conv2d(32, 10, 3, padding=1),
+            nn.AvgPool2d(3), 
+            nn.Sigmoid()
+            
+            #nn.Softmax(dim=1)
+            
+        )
+        return model
+        #
+        
+    def train(self, iodata_list):
+        self.feature_ids = get_nonzero_ids(iodata_list,
+            make_conv_features=make_conv_features2)
+        self.model = self.build_model(self.feature_ids)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        all_losses = []
+        for epoch in range(self.nepochs):
+            self.model.train()
+            if self.debug:
+                print("Epoch", epoch)
+            losses = []
+            self.optimizer.zero_grad()
+            #train_x, train_y, result = make_features(iodata_list)
+            for iodata in iodata_list:
+                features = make_conv_features2(iodata.input_field)#.reshape(iodata.input_field.shape+(-1,))
+                features = features[:, :, self.feature_ids]
+                features = np.moveaxis(features, -1, 0)
+                features = features[np.newaxis, ...]
+                i = torch.tensor(features).float()
+                
+                o = iodata.output_field.t_splitted()
+                o = torch.unsqueeze(o, dim=0).float()
+                p = self.model.forward(i)
+                loss = self.loss_func(p, o)
+                loss.backward()
+                losses.append(loss.item())
+            if self.debug:
+                print(losses)
+                
+            losses = np.mean(losses)
+            if len(all_losses) > 0:
+                if len(all_losses) > 10 and np.mean(all_losses[-10:]) <= losses:
+                    break
+            all_losses.append(losses)
+            
+            #if epoch % 10 == 0:
+            #    print("zero grad")   
+            self.optimizer.step()
+        
+    def predict(self, field):
+        if isinstance(field, IOData):
+            for v in self.predict(field.input_field):
+                yield v
+            return
+        self.model.eval()
+        with torch.no_grad():
+            features = make_conv_features2(field)
+            features = features[:, :, self.feature_ids]
+            features = np.moveaxis(features, -1, 0)
+            features = features[np.newaxis, ...]
+            i = torch.tensor(features).float()
+            p = self.model.forward(i)
+            p = torch.squeeze(p, dim=0).detach().cpu().numpy()
+        yield Field.from_splitted(p)
+
+    def __str__(self):
+        return "ConvolutionPredictor()"

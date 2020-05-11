@@ -35,7 +35,7 @@ class Predictor:
         if len(scores) < 1:
             return 0.0
         #print(scores)
-        return max(scores)
+        return np.mean(scores)
 
     def freeze_by_score(self, iodata_list, k=3):
         pass
@@ -68,6 +68,24 @@ class AvailableEqualShape():
             if iodata.input_field.shape != iodata.output_field.shape:
                 return False
         return True
+
+
+class AvailableShape2Point():
+    def is_available(self, iodata_list):
+        for iodata in iodata_list:
+            if iodata.output_field.shape != (1, 1):
+                return False
+        return True
+
+
+class AvailableShape2PointOrConstColor():
+    def is_available(self, iodata_list):
+        for iodata in iodata_list:
+            if iodata.output_field.shape != (1, 1):
+                if len(np.unique(iodata.output_field.data)) != 1:
+                    return False
+        return True
+
 
 class AvailableEqualShapeAndMaxNColors():
         

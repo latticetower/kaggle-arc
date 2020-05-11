@@ -36,6 +36,10 @@ class ColorCountingPredictor(Predictor, AvailableEqualShape):
             for Q2 in range(1, 8)
             if Q1 + Q2 == t
         ]
+        h, w = list(zip(*[iodata.input_field.shape for iodata in iodata_list]))
+        hmax = max(h)
+        wmax = max(w)
+        pairs = [(Q1, Q2) for Q1, Q2 in pairs if Q1 <hmax and Q2 < wmax]
         possible = True
         for Q1, Q2 in pairs:
             for v in range(4):
