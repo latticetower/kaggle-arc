@@ -61,7 +61,8 @@ class Field:
             self.data = data.copy()
         self.multiplier = 0.5
         self.colormap = None
-        self.prop_names = "h w xmin ymin xmax ymax xmean ymean is_convex holes contour_size interior_size".split()
+        self.prop_names = "h w xmin ymin xmax ymax xmean ymean is_convex holes contour_size interior_size".split() + \
+            "is_rectangular is_square".split() + [f"flip_{i}" for i in range(10)]+[f"flip_conv_{i}" for i in range(10)]
 
     def get(self, i, j, default_color=0):
         if i < 0 or j < 0:

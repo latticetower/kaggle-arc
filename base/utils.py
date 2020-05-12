@@ -87,6 +87,27 @@ def get_region_params(r, connectivity=None):
         params[rid]['is_convex'] = np.all(conv == region)
         no_holes = fill_region_holes(region)
         maps[rid]['no_holes'] = no_holes
+        is_rectangular = no_holes[xmin:xmax+1, ymin:ymax+1].mean() == 1
+        params[rid]['is_rectangular'] = is_rectangular
+        params[rid]['is_square'] = is_rectangular and xmax - xmin + 1 == ymax - ymin + 1
+        area = region[xmin: xmax + 1, ymin:ymax+1]
+        area2 = conv[xmin: xmax + 1, ymin:ymax+1]
+        
+        operations = [
+            lambda inp: np.fliplr(inp),
+            lambda inp: np.rot90(np.fliplr(inp), 1),
+            lambda inp: np.rot90(np.fliplr(inp), 2),
+            lambda inp: np.rot90(np.fliplr(inp), 3),
+            lambda inp: np.flipud(inp),
+            lambda inp: np.rot90(np.flipud(inp), 1),
+            lambda inp: np.rot90(np.flipud(inp), 2),
+            lambda inp: np.rot90(np.flipud(inp), 3),
+            lambda inp: np.fliplr(np.flipud(inp)),
+            lambda inp: np.flipud(np.fliplr(inp))
+        ]
+        for i, op in enumerate(operations):
+            params[rid][f"flip_{i}"] = np.all(op(area) == area)
+            params[rid][f"flip_conv_{i}"] = np.all(op(area) == area)
         inner_regions = [x for x in np.unique(r[np.where(no_holes)]) if x != rid and x != 0]
         params[rid]['inner_regions'] = inner_regions
         params[rid]['holes'] = len(inner_regions)
