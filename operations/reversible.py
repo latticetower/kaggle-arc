@@ -207,6 +207,35 @@ class WrappedOperation:
         if self.postprocess is None:
             op = prev
         else:
-            op = lambda t: prev(self.postprocess.do(t))
+            if prev is None:
+                op = lambda t: self.postprocess.do(t)
+            else:
+                op = lambda t: prev(self.postprocess.do(t))
         return x, op
 
+
+class WrappedOperationList:
+    def __init__(self, operations):
+        self.operations = operations
+        pass
+
+    def train(self, iodata_list):
+        il = iodata_list
+        for op in self.operations:
+            op.train(il)
+            il = [ op.wrap(io) for io in il ]
+        pass
+    def wrap(self, iodata):
+        i = iodata.input_field
+        o = iodata.output_field
+        x = (i, o)
+        for op in self.operations:
+            x = op.wrap(x)
+        return x
+
+    def run(self, field, prev=lambda x: x):
+        x = field
+        prev = None
+        for op in operations:
+            x, prev = op.run(x, prev)
+        return x, prev

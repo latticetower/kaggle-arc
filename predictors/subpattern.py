@@ -98,7 +98,7 @@ class SubpatternMatcherPredictor(Predictor):
             ReversibleSplit((h, w), hsep=1, wsep=1, outer_sep=False, splitter_func=split_by_shape),
             ReversibleCombine((h, w), hsep=1, wsep=1, outer_sep=False, sep_color=5, splitter_func=split_by_shape)
         )
-        self.op.train(iodata_list)
+        #self.op.train(iodata_list)
         return True
     
     def train(self, iodata_list):
