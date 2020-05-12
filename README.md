@@ -22,7 +22,7 @@ To evaluate predictors on train and evaluation datasets, the following command w
 ```
 PYTHONPATH=$(pwd)/..:$PYTHONPATH python predictor_validator.py Id Zeros ColorCounting Repeating Fractal
 ```
-Table format: accuracy on train / accuracy on test / count of samples for which predictor is available
+Table format: correct predictions on train / correct predictions on test / count of samples for which predictor is available
 Class name | Train | Evaluation
 -----------|-------|-----------
 IdPredictor | 4 / 0 / 400 | 2 / 0 / 400
