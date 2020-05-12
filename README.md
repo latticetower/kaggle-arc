@@ -41,6 +41,7 @@ Augmentation + repainter: | 79 / 8 / 262 | 43 / 2 / 270
 Augmentation, w/o repainter: | 83 / 7 / 262 | 37 / 1 / 270
 
 BoostingTreePredictor2 | 2 / 1 / 31 | 3 / 3 / 27
+BoostingTreePredictor3 | 218 / 31 / 262 | 198 / 12 / 270
 
 SubpatternMatcherPredictor | 2 / 2 / 10 | 0 / 0 / 2
 

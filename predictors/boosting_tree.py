@@ -341,7 +341,10 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
                 )
                 for iodata in iodata_list
             ]))
-        feat, target, _ = BTFeatureExtractor.get_features(iodata_list, all_square=self.all_square)
+        feat, target, _ = BTFeatureExtractor.get_features(
+            iodata_list, all_square=self.all_square,
+            features_maker=BTFeatureExtractor.make_features
+            )
         self.xgb.fit(feat, target, verbose=-1)
 
     def predict(self, field):

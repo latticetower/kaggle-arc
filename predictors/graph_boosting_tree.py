@@ -313,7 +313,8 @@ class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
         #feat, target, _ = GraphFeatureExtractor.prepare_graph_features(iodata_list)
         self.xgb_binary.fit(train_x_binary, train_y_binary, verbose=-1)
         
-        feat, target, _ = BTFeatureExtractor.get_features(iodata_list)
+        feat, target, _ = BTFeatureExtractor.get_features(
+            iodata_list, features_maker=BTFeatureExtractor.make_features_v2)
         self.xgb.fit(feat, target, verbose=-1)
         #next - train xgboost
 
@@ -338,7 +339,7 @@ class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
         else:
             preds_binary = self.xgb_binary.predict(inputs)
         
-        feat = BTFeatureExtractor.make_features(field)
+        feat = BTFeatureExtractor.make_features_v2(field)
         preds = self.xgb.predict(feat).reshape(nrows, ncols)
         preds = preds.astype(int)#.tolist()
         #result = repainter(preds).tolist()
