@@ -27,23 +27,16 @@ Class name | Train | Evaluation
 IdPredictor | 4 / 0 / 400 | 2 / 0 / 400
 ZerosPredictor | 0 / 0 / 400 | 0 / 0 / 400
 ColorCountingPredictor | 16 / 5 / 262 | 2 / 1 / 270
-
 RepeatingPredictor | 0 / 0 / 17 | 0 / 0 / 23
 FractalPredictor | 1 / 1 / 17 | 2 / 1 / 23
 ResizingPredictor | 2 / 2 / 17 | 1 / 1 / 23
 ConstantShaper | 4 / 4 / 15 | 3 / 3 / 10
 BoostingTreePredictor | 136 / 24 / 262 | 134 / 8 / 270
-
 No augmentation, with painter | 217 / 31 / 262 | 188 / 8 / 270
 with square features  | 214 / 31 / 262 | 191 / 9 / 270
-
 Augmentation + repainter: | 79 / 8 / 262 | 43 / 2 / 270
 Augmentation, w/o repainter: | 83 / 7 / 262 | 37 / 1 / 270
-
 BoostingTreePredictor2 | 2 / 1 / 31 | 3 / 3 / 27
 BoostingTreePredictor3 | 218 / 31 / 262 | 198 / 12 / 270
-
 SubpatternMatcherPredictor | 2 / 2 / 10 | 0 / 0 / 2
-
-
 SimpleSummarizePredictor | 1 / 1 / 6 | 0 / 2 / 2
