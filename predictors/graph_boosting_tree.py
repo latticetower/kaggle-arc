@@ -28,19 +28,23 @@ class GraphFeatureExtractor:
             positions = set()
             ncolors = []
             props = set()
+            comp_features = []
             for n in gx.nodes.values():
                 ncolors.append(n['neighbour_colors'])
                 color = n['color']
                 nfeatures.append(n['features'])
                 positions.add(n['pos'])
+                comp_features = n['component_params']
                 if 'properties' in n:
                     props.add(n['properties'])
             data = {
                 'color': color,
-                'features': np.stack(nfeatures, 0).sum(0), 'ncolors': np.stack(ncolors, 0).sum(0), 
+                'features': np.stack(nfeatures, 0).sum(0),
+                'comp_features': comp_features,
+                'ncolors': np.stack(ncolors, 0).sum(0), 
                 'pos': positions, 'size': len(x) }
             if len(props) > 0:
-                data['properties'] = props
+                data['properties'] = list(props)
             yield data
 
 
@@ -63,33 +67,35 @@ class GraphFeatureExtractor:
             for gi in cpi:
                 if not use_zeros and gi['color'] == 0:
                     continue
+                #print(gi['features'].shape)
                 #yield gi['color'], gi['features'], gi['ncolors'], gi['size']
                 if 'properties' in gi:
-                    yield gi['color'], gi['features'], gi['ncolors'], gi['size'], gi['properties']
+                    yield gi['color'], gi['features'],  gi['comp_features'], gi['ncolors'], gi['size'], gi['properties']
                 else:
-                    yield gi['color'], gi['features'], gi['ncolors'], gi['size']
+                    yield gi['color'], gi['features'], gi['comp_features'], gi['ncolors'], gi['size']
             return
         for gi, go in zip(cpi, cpo):
             if not use_zeros and gi['color'] == 0:
                 continue
             target = gi['color'] != go['color']
-            yield gi['color'], gi['features'], gi['ncolors'], gi['size'], target*1.0, go['color']
+            yield gi['color'], gi['features'], gi['comp_features'], gi['ncolors'], gi['size'], target*1.0, go['color']
 
         
     @staticmethod
     def collect_graph_data(cpi, cpo=None, use_zeros=True):
         if cpo is None:
-            colors, features, ncolors, sizes = list(
+            colors, features, comp_features, ncolors, sizes = list(
                 zip(*GraphFeatureExtractor.get_data(cpi, use_zeros=use_zeros)))
         else:
-            colors, features, ncolors, sizes, targets_bin, targets_color = list(
+            colors, features, comp_features, ncolors, sizes, targets_bin, targets_color = list(
                 zip(*GraphFeatureExtractor.get_data(cpi, cpo, use_zeros=use_zeros)))
-
+        
         colors = np.asarray([[i==c for i in range(10)] for c in colors]).astype(np.float)
         features = (np.stack(features, 0) > 0)*1.0
+        comp_features = np.stack(comp_features, 0)
         ncolors = (np.stack(ncolors, 0) > 0).astype(np.float)
         sizes = np.asarray(sizes).reshape(-1, 1)
-        inputs = np.concatenate([colors, features, ncolors, sizes], 1)
+        inputs = np.concatenate([colors, features, comp_features, ncolors, sizes], 1)
         if cpo is None:
             return inputs
         targets = np.asarray(targets_bin)#.reshape(-1, 1)
@@ -117,16 +123,17 @@ class GraphFeatureExtractor:
             properties=iodata.input_field.data != iodata.output_field.data
         )
         graph_data = list(GraphFeatureExtractor.get_comp_params(GI))
-        colors, features, ncolors, sizes, properties = list(
+        colors, features, comp_features, ncolors, sizes, properties = list(
             zip(*GraphFeatureExtractor.get_data(graph_data)))
         
         colors = np.asarray([[i==c for i in range(10)] for c in colors]).astype(np.float)
         features = (np.stack(features, 0) > 0)*1.0
+        comp_features = np.stack(comp_features, 0)
         ncolors = (np.stack(ncolors, 0) > 0).astype(np.float)
         sizes = np.asarray(sizes).reshape(-1, 1)
         targets = np.asarray([np.any(list(p))*1.0 for p in properties])#np.asarray(targets_bin)#.reshape(-1, 1)
         
-        inputs = np.concatenate([colors, features, ncolors, sizes], 1)
+        inputs = np.concatenate([colors, features, comp_features, ncolors, sizes], 1)
         
         return inputs, targets#, targets_color
 
@@ -173,6 +180,7 @@ class GraphBoostingTreePredictor(Predictor, AvailableEqualShapeAndComponents):
         train_x = np.concatenate(train_x, 0)
         train_y_bin = np.concatenate(train_y_bin, 0)
         train_y = np.concatenate(train_y, 0)
+        #print(train_y_bin, train_y)
         #feat, target, _ = GraphFeatureExtractor.prepare_graph_features(iodata_list)
         self.xgb_binary.fit(train_x, train_y_bin, verbose=-1)
         self.xgb.fit(train_x, train_y, verbose=-1)
@@ -312,9 +320,11 @@ class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
         train_x_binary, train_y_binary = self._make_train_binary_features(iodata_list)
         #feat, target, _ = GraphFeatureExtractor.prepare_graph_features(iodata_list)
         self.xgb_binary.fit(train_x_binary, train_y_binary, verbose=-1)
+        #print("binary",train_y_binary)
         
         feat, target, _ = BTFeatureExtractor.get_features(
             iodata_list, features_maker=BTFeatureExtractor.make_features_v2)
+        #print(target)
         self.xgb.fit(feat, target, verbose=-1)
         #next - train xgboost
 

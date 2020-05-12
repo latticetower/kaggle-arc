@@ -18,6 +18,8 @@ import networkx as nx
 from typing import NamedTuple
 
 from constants import *
+from base.utils import *
+
 
 def binary_dice(a, b):
     s = (np.sum(a) + np.sum(b))
@@ -50,7 +52,7 @@ def build_colormap(i, o=None, bg=0):
 
 
 class Field:
-    __slots__ = ["data", "multiplier", "colormap"]
+    __slots__ = ["data", "multiplier", "colormap", "prop_names"]
     
     def __init__(self, data):
         if isinstance(data, list):
@@ -59,6 +61,7 @@ class Field:
             self.data = data.copy()
         self.multiplier = 0.5
         self.colormap = None
+        self.prop_names = "h w xmin ymin xmax ymax xmean ymean is_convex holes contour_size interior_size".split()
 
     def get(self, i, j, default_color=0):
         if i < 0 or j < 0:
@@ -222,7 +225,14 @@ class Field:
         all_features = get_features(self.data)
         node_ids = OrderedDict() # node id -> (i, j) pair
         node_coords = OrderedDict() # node (i, j) pair -> id
-
+        
+        regions0 = get_data_regions(self.data)
+        params0, maps0 = get_region_params(regions0)
+        
+        regions1 = get_data_regions(self.data, connectivity=1)
+        params1, maps1 = get_region_params(regions1, connectivity=1)
+        
+        
         for i in range(self.data.shape[0]):
             for j in range(self.data.shape[1]):
                 new_id = len(node_ids)
@@ -274,8 +284,15 @@ class Field:
                     'x': all_features[:, i, j].astype(np.float64),
                     'pos': (i, j)
                 }
+                rid0 = regions0[i, j]
+                p = [params0[rid0][k] for k in self.prop_names]
+                rid1 = regions1[i, j]
+                p+= [params1[rid1][k] for k in self.prop_names]
+                
                 if properties is not None:
                     props['properties'] = properties[i, j]
+                props['component_params'] = np.asarray(p)
+                
                 graph_nx.add_node(new_id,
                     # features=np.asarray(features).astype(np.float),
                     # neighbours=neighbours,
@@ -319,22 +336,45 @@ class ComplexField:
     def __init__(self, data, **params):
         self.data = data
         self.params = params
-    
+        self.multiplier = 0.5
+
+    @property
     def shape(self):
         if len(self.data) > 0:
-            return len(self.data), len(self.data[0])
-        return len(self.data)
+            if isinstance(self.data[0], list):
+                return (len(self.data), len(self.data[0]))
+        return (len(self.data),)
+    
+    @property
+    def width(self):
+        if len(self.shape) == 1:
+            return 1
+        return self.shape[1]
+
+    @property
+    def height(self):
+        return self.shape[0]
 
     def flat_iter(self):
         for line in self.data:
-            for x in line:
-                yield x
+            if isinstance(line, list):
+                for x in line:
+                    yield x
+            else:
+                yield line
+
     def map(self, func):
         new_data = [
             [ func(x) for x in line ]
             for line in self.data
         ]
         return ComplexField(new_data, **self.params)
-
+        
+    def show(self, ax=None, label=None):
+        if ax is None:
+            plt.figure(figsize=(self.width*self.multiplier, self.height*self.multiplier))
+            ax = plt.gca()
+        pass
+    
     def __str__(self):
         return f"ComplexField({self.shape}, {self.params})"
