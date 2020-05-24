@@ -20,6 +20,9 @@ from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoos
 from predictors.decision_tree import AugmentedPredictor
 from predictors.subpattern import SubpatternMatcherPredictor
 from predictors.field2point import *
+from predictors.complex import DefaultComplexPredictor
+from predictors.cam_predictor import *
+from predictors.connector import *
 
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
@@ -41,6 +44,7 @@ def evaluate_on_dataset(predictor_class, ds, cutoff=1.0, draw_results=True,
         predictor.train(sample.train)
         predictor.freeze_by_score(sample.train)
         score_train = predictor.validate(sample.train)
+        #print(score_train)
         params['train_score'][i] = score_train
         score_test = predictor.validate(sample.test)
         params['test_score'][i] = score_test

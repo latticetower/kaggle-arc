@@ -96,6 +96,11 @@ class SimpleSummarizeOperation(IrreversibleOperation):
             count_color_area_bg,
             count_colors
         ]
+        color_dict = {tuple((i.data == i.data[0, 0]).flatten()): o.data[0, 0] for i, o in iodata_list}
+        # candidates.append(
+        #     lambda x, bg: color_dict.get(tuple((x.data == x.data[0, 0]).flatten()), 0)
+        # )
+        #candidates.extend([])
         
         h, w = list(zip(*[i.shape for i, o in iodata_list]))
         hmin = np.min(h)

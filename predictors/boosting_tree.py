@@ -6,13 +6,16 @@ from itertools import product
 import itertools
 from skimage.measure import label
 import numpy as np
+
 from base.field import Field
 from base.iodata import IOData
+from base.utils import *
 
 from predictors.basic import *
 from operations.basic import Repaint
 from operations.reversible import *
 from operations.field2point import ComplexSummarizeOperation
+
 
 class BTFeatureExtractor:
     @staticmethod
@@ -177,7 +180,6 @@ class BTFeatureExtractor:
         feat = np.asarray(all_features)
         return feat
 
-
     @classmethod
     def make_features_v2(cls, field, nfeat=13, local_neighb=5, all_square=False):
         nrows, ncols = field.shape
@@ -194,6 +196,120 @@ class BTFeatureExtractor:
                     i*j,
                     field.data[i, j]]
                     
+                for m in range(1, 6):
+                    features.extend([
+                        i % m,
+                        j % m
+                    ])
+                features.extend([
+                        (i+1)/(j+1),
+                        (j+1)/(i+1),
+                        nrows, ncols
+                ])
+                for size in [1, 3, 5]:
+                    arnd = cls.getAround(i,j, field, size)
+                    features.append(len(np.unique(arnd)))
+                    features.extend(arnd)
+                features.extend(
+                    BTFeatureExtractor.get_moore_neighbours(field, i, j, nrows, ncols))
+                features.extend(
+                    BTFeatureExtractor.get_tl_tr(field, i, j, nrows, ncols))
+                features.extend([
+                    len(np.unique(field.data[i,:])),
+                    len(np.unique(field.data[:,j])),
+                    #next goes count of non-zero points
+                    np.sum(field.data[i, :] > 0),
+                    np.sum(field.data[:, j] > 0),
+                    (i+j),
+                    len(np.unique(field.data[
+                        i-local_neighb:i+local_neighb,
+                        j-local_neighb:j+local_neighb]))
+                ])
+                
+                #feat[cur_idx,13]
+                features.extend([
+                    (i + ncols - j - 1),
+                    (i + j) % 2,
+                    (i + j + 1) % 2,
+                    (i + ncols - j - 1) % 2, #
+                    (nrows - 1 - i + ncols - j - 1) % 2,#
+                    (nrows - 1 - i + j) % 2  #
+                ])
+                features.extend([
+                    field.get(i + k, j + v)
+                    for k, v in product([-1, 0, 1], [-1, 0, 1])
+                ])
+                features.extend([
+                    field.data[nrows - 1 - i, j],
+                    field.data[nrows - 1 - i, ncols - 1 - j],
+                    field.data[i, ncols - 1 - j]
+                ])
+                if all_square: #and field.data.shape[0] == field.data.shape[1]:
+                    features.extend([
+                        field.get(j, i),
+                        field.get(j, nrows - 1 - i),
+                        field.get(ncols - 1 - j, nrows - 1 - i),
+                        field.get(ncols - 1 - j, i)
+                    ])
+                features.extend([
+                    field.data[i, j] != 0,
+                    np.sum([ field.get(i+k, j+v) == color
+                        for k, v in product([-1, 1], [-1, 1])]),
+                    np.sum([
+                        field.get(i + 1, j) == color,
+                        field.get(i - 1, j) == color,
+                        field.get(i, j + 1) == color,
+                        field.get(i, j - 1) == color
+                    ]),
+                    #next were commented
+                    np.sum([ field.get(i + k, j + v) == 0
+                        for k, v in product([-1, 1], [-1, 1])]),
+                    np.sum([
+                        field.get(i + 1, j) == 0,
+                        field.get(i - 1, j) == 0,
+                        field.get(i, j + 1) == 0,
+                        field.get(i, j - 1) == 0
+                    ])
+                ])
+                all_features.append(features)
+
+        feat = np.asarray(all_features)
+        return feat
+
+    @classmethod
+    def make_features_v3(cls, field, nfeat=13, local_neighb=5, all_square=False):
+        nrows, ncols = field.shape
+        prop_names = "h w is_convex is_rectangular is_square holes contour_size interior_size".split()+\
+            [f"flip_{i}" for i in range(10)] + [f"flip_conv_{i}" for i in range(10)]
+        
+        regions0 = get_data_regions(field.data)
+        params0, maps0 = get_region_params(regions0)
+        
+        regions1 = get_data_regions(field.data, connectivity=1)
+        params1, maps1 = get_region_params(regions1, connectivity=1)
+
+        #feat = np.zeros((nrows*ncols, nfeat))
+        all_features = []
+        regions = [label(field.data==i) for i in range(10)]
+        cur_idx = 0
+        for i in range(nrows):
+            for j in range(ncols):
+                rid0 = regions0[i, j]
+                rid1 = regions1[i, j]
+                
+                color = field.data[i, j]
+                features = [
+                    i,
+                    j,
+                    i*j,
+                    field.data[i, j]]
+                features.extend([params0[rid0][n] for n in prop_names])
+                features.extend([params1[rid1][n] for n in prop_names])
+                features.append(maps0[rid0]['contour'][i, j])
+                features.append(maps0[rid0]['interior'][i, j])
+                features.append(maps1[rid1]['contour'][i, j])
+                features.append(maps1[rid1]['interior'][i, j])
+                
                 for m in range(1, 6):
                     features.extend([
                         i % m,
@@ -343,7 +459,7 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
             ]))
         feat, target, _ = BTFeatureExtractor.get_features(
             iodata_list, all_square=self.all_square,
-            features_maker=BTFeatureExtractor.make_features
+            features_maker=BTFeatureExtractor.make_features_v3
             )
         self.xgb.fit(feat, target, verbose=-1)
 
@@ -354,7 +470,7 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
             return
         #repainter = Repaint(field.data)
         nrows, ncols = field.shape
-        feat = BTFeatureExtractor.make_features(field, all_square=self.all_square)
+        feat = BTFeatureExtractor.make_features_v3(field, all_square=self.all_square)
         preds = self.xgb.predict(feat).reshape(nrows, ncols)
         preds = preds.astype(int)#.tolist()
         #preds = field.reconstruct(Field(preds))
@@ -543,7 +659,8 @@ class BoostingTreePredictor3(Predictor, AvailableEqualShape):
             ]))
         feat, target, _ = BTFeatureExtractor.get_features(
             iodata_list, all_square=self.all_square,
-            features_maker=BTFeatureExtractor.make_features_v2)
+            features_maker=BTFeatureExtractor.make_features_v3)
+        #print(feat.shape, target.shape)
         self.xgb.fit(feat, target, verbose=-1)
 
     def predict(self, field):
@@ -553,7 +670,7 @@ class BoostingTreePredictor3(Predictor, AvailableEqualShape):
             return
         #repainter = Repaint(field.data)
         nrows, ncols = field.shape
-        feat = BTFeatureExtractor.make_features_v2(field, all_square=self.all_square)
+        feat = BTFeatureExtractor.make_features_v3(field, all_square=self.all_square)
         preds = self.xgb.predict(feat).reshape(nrows, ncols)
         preds = preds.astype(int)#.tolist()
         #preds = field.reconstruct(Field(preds))

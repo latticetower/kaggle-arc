@@ -83,10 +83,14 @@ def get_region_params(r, connectivity=None):
         params[rid]['xmean'] = int(xmean)
         params[rid]['ymean'] = int(ymean)
         conv = make_convex(region)
+        
         maps[rid]['convex'] = conv
+        
         params[rid]['is_convex'] = np.all(conv == region)
         no_holes = fill_region_holes(region)
+        
         maps[rid]['no_holes'] = no_holes
+        
         is_rectangular = no_holes[xmin:xmax+1, ymin:ymax+1].mean() == 1
         params[rid]['is_rectangular'] = is_rectangular
         params[rid]['is_square'] = is_rectangular and xmax - xmin + 1 == ymax - ymin + 1
@@ -112,8 +116,10 @@ def get_region_params(r, connectivity=None):
         params[rid]['inner_regions'] = inner_regions
         params[rid]['holes'] = len(inner_regions)
         contour, interior = split_interior(region, connectivity=connectivity)
+        
         maps[rid]['contour'] = contour
         maps[rid]['interior'] = interior
+        
         params[rid]['contour_size'] = np.sum(contour)
         params[rid]['interior_size'] = np.sum(interior)
         #params[rid]['has_holes']

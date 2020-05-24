@@ -115,7 +115,8 @@ class SubpatternMatcherPredictor(Predictor):
             #for xi, xo in zip(li, lo)
         ]
         #print(all_samples)
-        feat, target, _ = BTFeatureExtractor.get_features(all_samples)
+        feat, target, _ = BTFeatureExtractor.get_features(all_samples,
+            features_maker=BTFeatureExtractor.make_features_v3)
         # print(feat.shape, target.shape)
         self.xgb.fit(feat, target, verbose=-1)
 
@@ -130,7 +131,7 @@ class SubpatternMatcherPredictor(Predictor):
         #print(feature_field)
         def predict_on_subfield(x):
             nrows, ncols = x.shape
-            feat = BTFeatureExtractor.make_features(x)
+            feat = BTFeatureExtractor.make_features_v3(x)
             preds = self.xgb.predict(feat).reshape(nrows, ncols)
             preds = preds.astype(int)#.tolist()
             #print(x.data)
