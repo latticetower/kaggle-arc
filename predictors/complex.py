@@ -71,13 +71,12 @@ class ComplexPredictor(Predictor, AvailableAll):
                 p.freeze_by_score(iodata_list, k=k)
                 score = p.validate(iodata_list, k=k)
             except:
-                score = 0
+                score = -1
             scores.append(score)
         scores = np.asarray(scores)
         #scores = scores[np.argwhere(scores>0)]
         ids = np.argsort(scores)[::-1]
-        ids2 = np.argwhere(scores > 0)
-        self.predictors = [ self.predictors[i] for i in ids if i in ids2 ]
+        self.predictors = [ self.predictors[i] for i in ids if scores[i] >=0 ]
 
     def predict(self, field):
         for p in self.predictors:
