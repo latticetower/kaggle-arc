@@ -27,15 +27,15 @@ predictor_args = [
     ZerosPredictor,
     ColorCountingPredictor,
     RepeatingPredictor,
-    FractalPredictor,
-    ResizingPredictor,
-    GraphBoostingTreePredictor,#no impact
+    #FractalPredictor,
+    #ResizingPredictor,
+    #GraphBoostingTreePredictor,#no impact
     #GraphBoostingTreePredictor3,
     ConstantShaper,
     #BoostingTreePredictor,
     #BoostingTreePredictor2,
-    BoostingTreePredictor3,
-    SubpatternMatcherPredictor,
+    #BoostingTreePredictor3,
+    #SubpatternMatcherPredictor,
     PointConnectorPredictor
     #AugmentedPredictor
     #FillPredictor,

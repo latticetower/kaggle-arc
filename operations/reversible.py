@@ -1,6 +1,7 @@
 import numpy as np
 
 from base.field import *
+from base.iodata import *
 from operations.basic import candidate_functions
 
 class ReversibleOperation:
@@ -109,12 +110,14 @@ def decrease2color(data, background=0):
 
 
 class ReversibleSplit(ReversibleOperation):
-    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0, splitter_func=split2shape):
+    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0,
+            parent=None, splitter_func=split2shape):
         self.shape = shape
         self.hsep = hsep
         self.wsep = wsep
         self.outer_sep = outer_sep
         self.sep_color = sep_color
+        parent=None,
         self.splitter_func = splitter_func
 
     def do(self, field):
@@ -132,7 +135,8 @@ class ReversibleSplit(ReversibleOperation):
 
 
 class ReversibleCombine(ReversibleOperation):
-    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0, splitter_func=split2shape):
+    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0,
+            parent=None, splitter_func=split2shape):
         self.shape = shape
         self.hsep = hsep
         self.wsep = wsep
@@ -140,6 +144,7 @@ class ReversibleCombine(ReversibleOperation):
         self.sep_color = sep_color
         self.splitter_func = splitter_func
         self.color_func = None
+        self.parent = None
 
     def train(self, io_list):
         #todo: correctly process case when there is no splitter
@@ -184,8 +189,11 @@ class WrappedOperation:
         self.postprocess = postprocess
         
     def wrap(self, iodata):
-        i = iodata.input_field
-        o = iodata.output_field
+        if isinstance(iodata, IOData):
+            i = iodata.input_field
+            o = iodata.output_field
+        else:
+            i, o = iodata
         forward_i = self.preprocess.do(i)
         if self.postprocess is None:
             reverse_o = o
@@ -226,9 +234,12 @@ class WrappedOperationList:
             il = [ op.wrap(io) for io in il ]
         pass
     def wrap(self, iodata):
-        i = iodata.input_field
-        o = iodata.output_field
-        x = (i, o)
+        if isinstance(iodata, IOData):
+            i = iodata.input_field
+            o = iodata.output_field
+            x = (i, o)
+        else:
+            x = iodata
         for op in self.operations:
             x = op.wrap(x)
         return x
