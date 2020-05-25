@@ -65,6 +65,7 @@ class PathDescription:
         self.rem = None
         self.colorizer = Colorizer()
         self.colorizer.path = self
+        
     def __eq__(self, o):
         if not (self.dx == o.dx and self.dy == o.dy):
             return False
@@ -240,6 +241,8 @@ class PointConnectorUtils:
             return path, inp_, out_
         for k, (x, y) in enumerate(path.positions):
             move = inp_[x: x+3, y:y+3].copy()
+            if inp_[x+1, y+1] == 10:
+                return None
             color = out_[x+1, y+1]
             path.colorizer.add_color(move, color)
             path.moves.append(move)

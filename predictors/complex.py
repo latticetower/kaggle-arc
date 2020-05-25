@@ -14,6 +14,8 @@ from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoos
 from predictors.decision_tree import AugmentedPredictor
 from predictors.subpattern import SubpatternMatcherPredictor
 from predictors.field2point import SimpleSummarizePredictor
+from predictors.connector import *
+
 
 class ComplexPredictor(Predictor, AvailableAll):
     def __init__(self, predictor_classes):
@@ -115,6 +117,7 @@ class DefaultComplexPredictor(ComplexPredictor):
             ConstantShaper,
             #BoostingTreePredictor,
             #BoostingTreePredictor2,
+            PointConnectorPredictor,
             BoostingTreePredictor3,
             SubpatternMatcherPredictor,
             #AugmentedPredictor
