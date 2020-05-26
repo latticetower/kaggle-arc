@@ -28,21 +28,21 @@ predictor_args = [
     ColorCountingPredictor,
     RepeatingPredictor,
     FractalPredictor,
-    #ResizingPredictor,
-    #GraphBoostingTreePredictor,#no impact
-    #GraphBoostingTreePredictor3,
-    #ConstantShaper,
-    #BoostingTreePredictor,
-    #BoostingTreePredictor2,
-    #BoostingTreePredictor3,
-    #SubpatternMatcherPredictor,
+    ResizingPredictor,
+    GraphBoostingTreePredictor,#no impact
+    GraphBoostingTreePredictor3,
+    ConstantShaper,
+    BoostingTreePredictor,
+    BoostingTreePredictor2,
+    BoostingTreePredictor3,
+    SubpatternMatcherPredictor,
     GraphBoostingTreePredictor2,
-    #PointConnectorPredictor
-    #AugmentedPredictor
-    #FillPredictor,
-    #MirrorPredictor,
-    #(ConvolutionPredictor, [], {'loss': 'mse'}),
-    #(ConvolutionPredictor, [], {'loss': 'dice'})
+    PointConnectorPredictor,
+    AugmentedPredictor,
+    FillPredictor,
+    MirrorPredictor,
+    (ConvolutionPredictor, [], {'loss': 'mse'}),
+    (ConvolutionPredictor, [], {'loss': 'dice'})
     ]
 #for i in range(1, 10):
 #    predictor_args.append((ConstPredictor, [], {'value': i}))
