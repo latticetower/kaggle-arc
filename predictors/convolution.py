@@ -11,6 +11,40 @@ from predictors.boosting_tree import BTFeatureExtractor
 from predictors.basic import *
 
 
+def DBA(inp_size, out_size, activation=torch.nn.LeakyReLU()):
+    return nn.Sequential(
+        nn.Conv2d(inp_size, out_size, kernel_size=3, padding=1),
+        nn.BatchNorm2d(out_size),
+        activation
+    )
+
+class NLU(nn.Module):
+    def __init__(self, inp_size, out_size=None, activation=torch.nn.LeakyReLU()):
+        super().__init__()
+        if out_size is None:
+            out_size = inp_size//2
+        self.block1 = DBA(inp_size, out_size, activation)
+        self.block2 = DBA(out_size, out_size, activation)
+
+    def forward(self, x):
+        y = self.block1(x)
+        return torch.cat([y, self.block2(y)],1)
+
+class StackedUnit(nn.Module):
+    def __init__(self, input_size=2, out_size=10, n=3,
+            activation=torch.nn.LeakyReLU(),
+            last_activation=torch.nn.Softmax(dim=1)):
+        super().__init__()
+        self.blocks = nn.ModuleList([NLU(input_size) for i in range(n)])
+        self.last_block = DBA(input_size, out_size, activation)
+        
+    def forward(self, x):
+        y = x
+        for block in self.blocks:
+            y = block(y)
+        return self.last_block(y)
+
+
 
 def filter_ones(col, split_count=1):
     coords = np.argwhere(col > 0).flatten()
@@ -262,18 +296,19 @@ def get_nonzero_ids(iodata_list, make_conv_features=make_conv_features):
 
 def train_on_sample(sample, cutoff=0.5, debug=False, infeatures=70):
     feature_ids = get_nonzero_ids(sample.train+sample.test)
-    model = nn.Sequential(
-        nn.Conv2d(len(feature_ids), 128, 3, padding=1),
-        nn.LeakyReLU(),
-        nn.Conv2d(128, 64, 3, padding=1),
-        nn.LeakyReLU(),
-        nn.Conv2d(64, 32, 3, padding=1),
-        nn.LeakyReLU(),
-        #nn.Sigmoid(),
-        nn.Conv2d(32, 10, 3, padding=1),
-        #  nn.Sigmoid()
-        nn.Softmax(dim=1)
-    )
+    model = StackedUnit(len(feature_ids), 10, last_activation=nn.Softmax(dim=1))
+    # model = nn.Sequential(
+    #     nn.Conv2d(len(feature_ids), 128, 3, padding=1),
+    #     nn.LeakyReLU(),
+    #     nn.Conv2d(128, 64, 3, padding=1),
+    #     nn.LeakyReLU(),
+    #     nn.Conv2d(64, 32, 3, padding=1),
+    #     nn.LeakyReLU(),
+    #     #nn.Sigmoid(),
+    #     nn.Conv2d(32, 10, 3, padding=1),
+    #     #  nn.Sigmoid()
+    #     nn.Softmax(dim=1)
+    # )
     loss_func = torch.nn.MSELoss()#dice_loss
     #print(net.parameters())
 

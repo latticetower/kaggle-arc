@@ -10,8 +10,6 @@ from utils import *
 from constants import *
 
 
-
-
 class Colorizer():
     def __init__(self):
         self.colors = []
@@ -45,7 +43,7 @@ class Colorizer():
             raise StopIteration
         while True:
             yield self.colors[position]
-            position = (position + 1)%len(self.colors)
+            position = (position + 1) % len(self.colors)
     def __repr__(self):
         return str(self.colors)
     

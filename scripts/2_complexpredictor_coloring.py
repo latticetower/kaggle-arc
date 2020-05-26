@@ -17,6 +17,7 @@ from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoos
 from predictors.decision_tree import AugmentedPredictor
 from predictors.subpattern import SubpatternMatcherPredictor
 from predictors.connector import PointConnectorPredictor
+from predictors.cam_predictor import *
 
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
@@ -41,8 +42,10 @@ predictor_args = [
     AugmentedPredictor,
     FillPredictor,
     MirrorPredictor,
+    CAMPredictor,
+    MoverPredictor,
     (ConvolutionPredictor, [], {'loss': 'mse'}),
-    (ConvolutionPredictor, [], {'loss': 'dice'})
+    #(ConvolutionPredictor, [], {'loss': 'dice'})
     ]
 #for i in range(1, 10):
 #    predictor_args.append((ConstPredictor, [], {'value': i}))
