@@ -28,13 +28,13 @@ train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
 predictor_args = [
     IdPredictor,
     ZerosPredictor,
-    ColorCountingPredictor,
+    #ColorCountingPredictor,
     RepeatingPredictor,
     FractalPredictor,
     ResizingPredictor,
     #GraphBoostingTreePredictor,#no impact
     #GraphBoostingTreePredictor3,
-    ConstantShaper,
+    #ConstantShaper,
     #BoostingTreePredictor,
     #BoostingTreePredictor2,
     BoostingTreePredictor3,
