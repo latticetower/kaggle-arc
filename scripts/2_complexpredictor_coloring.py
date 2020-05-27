@@ -18,6 +18,8 @@ from predictors.decision_tree import AugmentedPredictor
 from predictors.subpattern import SubpatternMatcherPredictor
 from predictors.connector import PointConnectorPredictor
 from predictors.cam_predictor import *
+from predictors.connector import PointConnectorPredictor
+from predictors.cf_combinator import WrappedCFPredictor
 
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
@@ -30,20 +32,21 @@ predictor_args = [
     RepeatingPredictor,
     FractalPredictor,
     ResizingPredictor,
-    GraphBoostingTreePredictor,#no impact
+    #GraphBoostingTreePredictor,#no impact
     GraphBoostingTreePredictor3,
     ConstantShaper,
     BoostingTreePredictor,
-    BoostingTreePredictor2,
+    #BoostingTreePredictor2,
     BoostingTreePredictor3,
     SubpatternMatcherPredictor,
-    GraphBoostingTreePredictor2,
+    #GraphBoostingTreePredictor2,
     PointConnectorPredictor,
-    AugmentedPredictor,
+    #AugmentedPredictor,
     FillPredictor,
+    WrappedCFPredictor,
     MirrorPredictor,
-    (ConvolutionPredictor, [], {'loss': 'mse'}),
-    (ConvolutionPredictor, [], {'loss': 'dice'})
+    #(ConvolutionPredictor, [], {'loss': 'mse'}),
+    #(ConvolutionPredictor, [], {'loss': 'dice'})
     ]
 #for i in range(1, 10):
 #    predictor_args.append((ConstPredictor, [], {'value': i}))

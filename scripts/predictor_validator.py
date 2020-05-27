@@ -23,6 +23,8 @@ from predictors.field2point import *
 from predictors.complex import DefaultComplexPredictor
 from predictors.cam_predictor import *
 from predictors.connector import *
+from predictors.connector import PointConnectorPredictor
+from predictors.cf_combinator import WrappedCFPredictor
 
 datasets = read_datasets(DATADIR)
 train_ds, eval_ds, test_ds = [ convert2samples(x) for x in datasets ]
