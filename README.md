@@ -45,3 +45,4 @@ SimpleSummarizePredictor | 1 / 1 / 6 | 0 / 2 / 2
 GraphBoostingTreePredictor | 17 / 13 / 43 | 9 / 6 / 33
 GraphBoostingTreePredictor3 | 155 / 28 / 262 | 143 / 6 / 270
 PointConnectorPredictor | 24 / 3 / 90 | 11 / 2 / 68
+ConvolutionPredictor | 11 / 1 / 262 | 3 / 0 / 270

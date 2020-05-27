@@ -163,8 +163,10 @@ class ReversibleCombine(ReversibleOperation):
         self.color_func = score_func
 
     def do(self, multifield):
-        colors = np.unique(multifield.params['separator'][np.where(multifield.params['splitter'])])
-        
+        if self.hsep > 0 or self.wsep > 0:
+            colors = np.unique(multifield.params['separator'][np.where(multifield.params['splitter'])])
+        else:
+            colors = []
         sep_color = self.sep_color
         if len(colors) > 0 and self.color_func is not None:
             sep_color = self.color_func(colors[0])

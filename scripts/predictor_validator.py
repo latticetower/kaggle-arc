@@ -82,7 +82,7 @@ for name in names:
     #     print(f"{name} is not a predictor")
     #     continue
     all_results = [name]
-    for i, ds in enumerate([train_ds[:1], eval_ds[:70]]):
+    for i, ds in enumerate([train_ds, eval_ds]):
         result = evaluate_on_dataset(predictor_class, ds, cutoff=1.0, imagedir=imagedir, dataset_id=i)
         params = result[-1]
         with open(os.path.join(savedir, f"{name}_{i}.json"), 'w') as f:

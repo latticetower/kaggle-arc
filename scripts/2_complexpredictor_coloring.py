@@ -42,10 +42,8 @@ predictor_args = [
     AugmentedPredictor,
     FillPredictor,
     MirrorPredictor,
-    CAMPredictor,
-    MoverPredictor,
     (ConvolutionPredictor, [], {'loss': 'mse'}),
-    #(ConvolutionPredictor, [], {'loss': 'dice'})
+    (ConvolutionPredictor, [], {'loss': 'dice'})
     ]
 #for i in range(1, 10):
 #    predictor_args.append((ConstPredictor, [], {'value': i}))
