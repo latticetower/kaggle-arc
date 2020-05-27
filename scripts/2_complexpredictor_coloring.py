@@ -35,7 +35,7 @@ predictor_args = [
     #GraphBoostingTreePredictor,#no impact
     GraphBoostingTreePredictor3,
     ConstantShaper,
-    BoostingTreePredictor,
+    #BoostingTreePredictor,
     #BoostingTreePredictor2,
     BoostingTreePredictor3,
     SubpatternMatcherPredictor,

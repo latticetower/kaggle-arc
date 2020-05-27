@@ -64,6 +64,7 @@ class CombinatorCFPredictor(Predictor):
     def predict(self, complex_field):
         inp = [[[ x for x in line] for line in d.data ] for d in complex_field.flat_iter()]
         inp = list(zip(*inp))
+        
         #print(self.iopairs)
         result = [[ self.iopairs.get(x, 0) for x in zip(*line)] for line in inp]
         cf = ComplexField([[
@@ -109,8 +110,9 @@ class WrappedCFPredictor(Predictor):
                             for start in range(outer_sep*hsep + oh, ih, hsep+oh):
                                 for x in np.unique(i[start : start + hsep]):
                                     hvalues.add(x)
-                            res = None
-                            break
+                            if len(hvalues) > 1:
+                                res = None
+                                break
                             #if len(hvalues) > 1:
                             #    return False
                         if wsep > 0:
@@ -128,15 +130,18 @@ class WrappedCFPredictor(Predictor):
                         else:
                             ih += hsep
                             iw += wsep
-                        h = ih//oh
+                        h = ih//(oh+hsep)
 
-                        if h*oh != ih:
+                        if h*(oh+hsep) != ih or h < 1:
                             res = None
                             continue
-                        w = iw//ow
-                        if w*ow != iw:
+                        #h -= hsep
+                        w = iw//(ow+wsep)
+                        if w*(ow+wsep) != iw or w < 1:
                             res = None
                             break
+                        #print(h, w, ih, oh, iw, ow)
+                        #w -= wsep
                         res.append((h, w))
                     if res is None:
                         continue
@@ -167,3 +172,4 @@ class WrappedCFPredictor(Predictor):
         field_inp, postprocess = self.op.run(field)
         for x in self.combinator.predict(field_inp):
             yield postprocess(x)
+            

@@ -16,8 +16,12 @@ class ReversibleOperation:
 def split2shape(field, target_shape, hsep=0, wsep=0, outer_sep=False):
     h, w = target_shape
     fh, fw = field.shape
-    hpart = (fh - outer_sep*hsep) // h - hsep
-    wpart = (fw - outer_sep*wsep) // w - wsep
+    if outer_sep:
+        hpart = (fh - hsep) // h - hsep
+        wpart = (fw - wsep) // w - wsep
+    else:
+        hpart = (fh + hsep) // h - hsep
+        wpart = (fw + wsep) // w - wsep
 
     splitted = []
     splitters = np.ones(field.data.shape, dtype=field.dtype)
