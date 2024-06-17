@@ -1,5 +1,5 @@
 import rootutils
-root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True, cwd=True)
+root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True, cwd=False)
 
 import json
 import os
@@ -54,7 +54,7 @@ def read_datasets_old(basedir="../data"):
 
 
 def read_datasets(basedir="../data", train_prefix="arc-agi_training", eval_prefix="arc-agi_evaluation", test_prefix="arc-agi_test"):
-    checked_path = Path(basedir) /"training"
+    checked_path = Path(basedir) / "training"
     if checked_path.exists():
         return read_datasets_old(basedir)
 
