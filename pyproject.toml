@@ -21,3 +21,6 @@ requires-python = ">=3.8"
 
 [tool.setuptools.packages]
 find = {}
+
+[tool.setuptools.package-data]
+"*" = [".project-root"]
