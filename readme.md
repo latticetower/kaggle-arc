@@ -1,3 +1,6 @@
+
+![Project image](https://github.com/latticetower/kaggle-arc/blob/main/assets/ministry_of_predictors.png)
+
 # Description
 
 Legacy code with my solutions from https://www.kaggle.com/c/abstraction-and-reasoning-challenge. 
