@@ -104,7 +104,7 @@ class Field:
 
     @property
     def to_array(self):
-        return [list(line) for line in self.data]
+        return [[int(x) for x in line] for line in self.data]
 
     @property
     def height(self):

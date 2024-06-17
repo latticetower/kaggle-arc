@@ -58,7 +58,7 @@ class Predictor:
 
     @classmethod
     def predict_on(
-        cls, ds, k=3, args=[], kwargs=dict(), verbose=True, group_predictions=True
+        cls, ds, k=3, args=[], kwargs=dict(), verbose=False, group_predictions=True
     ):
         for sample in ds:
             predictor = cls(*args, **kwargs)
