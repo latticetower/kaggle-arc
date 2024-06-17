@@ -2,6 +2,9 @@
 Predictor based on this notebook
 https://www.kaggle.com/szabo7zoltan/colorandcountingmoduloq
 """
+import rootutils
+root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+
 from base.iodata import IOData
 from base.field import Field
 from predictors.basic import Predictor

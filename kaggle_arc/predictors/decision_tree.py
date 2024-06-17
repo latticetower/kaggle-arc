@@ -2,6 +2,8 @@
 
 https://www.kaggle.com/adityaork/decision-tree-smart-data-augmentation/comments
 """
+import rootutils
+root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import json

@@ -1,6 +1,9 @@
 """
 Based on https://www.kaggle.com/meaninglesslives/using-decision-trees-for-arc
 """
+import rootutils
+root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+
 from xgboost import XGBClassifier
 from itertools import product
 import itertools

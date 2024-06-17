@@ -1,6 +1,9 @@
 """
 First we define methods for different field to color conversion operations. 
 """
+import rootutils
+root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+
 
 import numpy as np
 

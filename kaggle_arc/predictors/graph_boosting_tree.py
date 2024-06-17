@@ -1,6 +1,9 @@
 """
 
 """
+import rootutils
+root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+
 import networkx as nx
 import numpy as np
 from xgboost import XGBClassifier

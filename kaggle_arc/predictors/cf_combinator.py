@@ -1,3 +1,7 @@
+import rootutils
+root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+
+
 from base.field import *
 from base.iodata import *
 from predictors.basic import Predictor
