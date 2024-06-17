@@ -21,7 +21,7 @@ from predictors.connector import *
 
 
 class ComplexPredictor(Predictor, AvailableAll):
-    def __init__(self, predictor_classes):
+    def __init__(self, predictor_classes, verbose=False):
         self.predictors = []
         for data in predictor_classes:
             if isinstance(data, tuple):
@@ -35,8 +35,7 @@ class ComplexPredictor(Predictor, AvailableAll):
                 args = []
                 kwargs = dict()
             self.predictors.append(cls(*args, **kwargs))
-        #self.classes = predictor_classes
-        #pass
+            self.verbose = verbose
 
     def train(self, iodata_list):
         self.predictors = [
@@ -47,7 +46,8 @@ class ComplexPredictor(Predictor, AvailableAll):
             try:
                 p.train(iodata_list)
             except Exception as e:
-                print(e)
+                if self.verbose:
+                    print(e)
                 invalid_predictors.add(i)
         self.predictors = [
             p for i, p in enumerate(self.predictors)
@@ -91,8 +91,8 @@ class ComplexPredictor(Predictor, AvailableAll):
                 for v in p.predict(field):
                     yield v
             except Exception as e:
-                print(e)
-                pass
+                if self.verbose:
+                    print(e)
                 #continue
         # for p in self.predictors:
         #     try:
