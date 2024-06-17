@@ -44,7 +44,7 @@ class Predictor:
         pass
     
     @classmethod
-    def predict_on(cls, ds, k=3, args=[], kwargs=dict(), verbose=True):
+    def predict_on(cls, ds, k=3, args=[], kwargs=dict(), verbose=True, group_predictions=True):
         for sample in ds:
             predictor = cls(*args, **kwargs)
             #if not predictor.is_available(sample):
@@ -52,12 +52,17 @@ class Predictor:
             predictor.freeze_by_score(sample.train)
             
             score = predictor.validate(sample.train)
-            if score == 1:
+            if score == 1 and verbose:
                 print(predictor)
 
+            predictions = []
             for i, iodata in enumerate(sample.test):
                 prediction = list(islice(predictor.predict(iodata), k))
-                yield sample.name, i, prediction
+                predictions.append(prediction)
+                if not group_predictions:
+                    yield sample.name, i, prediction
+            if group_predictions:
+                yield sample.name, predictions
 
 
 class AvailableAll():
