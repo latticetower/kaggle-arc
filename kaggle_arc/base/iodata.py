@@ -150,13 +150,17 @@ class Sample:
             ax.set_yticks([])
 
         if gs is None:
-            gs = gridspec.GridSpec(ntrain + ntest, 1, figure=fig)
+            gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[ntrain, ntest], hspace=0.1)
         if train_gs is None:
-            train_gs = gridspec.GridSpecFromSubplotSpec(ntrain, ncols, subplot_spec=gs[:ntrain])
+            train_gs = gridspec.GridSpecFromSubplotSpec(ntrain, ncols, subplot_spec=gs[0])
         if test_gs is None:
-            test_gs = gridspec.GridSpecFromSubplotSpec(ntest, ncols, subplot_spec=gs[ntrain:])
+            test_gs = gridspec.GridSpecFromSubplotSpec(ntest, ncols, subplot_spec=gs[1])
 
         if train_gs is not None:
+            train_ax = fig.add_subplot(gs[0])
+            train_ax.set_xticks([])
+            train_ax.set_yticks([])
+            train_ax.set_ylabel("Train samples")
             for i in range(ntrain):
                 ax0 = fig.add_subplot(train_gs[i, 0])
                 ax1 = fig.add_subplot(train_gs[i, 1])
@@ -171,6 +175,10 @@ class Sample:
                         prediction.show(ax, label=f"{dice:1.4f}")
 
         if test_gs is not None:
+            test_ax = fig.add_subplot(gs[1])
+            test_ax.set_xticks([])
+            test_ax.set_yticks([])
+            test_ax.set_ylabel("Test samples")
             for i in range(ntest):
                 ax0 = fig.add_subplot(test_gs[i, 0])
                 ax1 = fig.add_subplot(test_gs[i, 1])
