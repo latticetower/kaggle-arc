@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kaggle_arc"
+authors = [
+    {name = "Tatiana Malygina"},
+]
+version = "0.0.1"
+dependencies = [
+    "numpy",
+    "pandas",
+    "rootutils",
+    "scikit-learn",
+    "scikit-image",
+    "networkx",
+]
+readme = "readme.md"
+requires-python = ">=3.8"
+
+[tool.setuptools.packages]
+find = {}
