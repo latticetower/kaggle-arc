@@ -7,12 +7,37 @@ from collections import OrderedDict
 
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 from base.iodata import Sample
 from base.field import Field
 
 
-def read_datasets(basedir="../data"):
+def read_single_dataset(basedir, prefix):
+    if isinstance(basedir, str):
+        basedir = Path(basedir)
+    challenges_file = basedir / f"{prefix}_challenges.json"
+    solutions_file = basedir / f"{prefix}_solutions.json"
+    if not challenges_file.exists():
+        return None
+    with open(challenges_file.as_posix()) as f:
+        puzzles = json.load(f)
+    solutions = {}
+    if solutions_file.exists():
+        with open(solutions_file.as_posix()) as f:
+            solutions = json.load(f)
+    # we are interested in puzzles with corresponding solutions, so we'll ignore solutions 
+    # which are not present in the puzzles file
+    puzzle_id_list = sorted(puzzles)
+    records = []
+    for puzzle_id in puzzle_id_list:
+        puzzle = puzzles[puzzle_id]
+        solution = solutions.get(puzzle_id)
+        records.append((puzzle_id, (puzzle, solution)))
+    return records
+
+
+def read_datasets_old(basedir="../data"):
     train_dir = os.path.join(basedir, "training")
     train_data = OrderedDict(
         (os.path.splitext(x)[0], os.path.join(train_dir, x)) 
@@ -26,11 +51,24 @@ def read_datasets(basedir="../data"):
         (os.path.splitext(x)[0], os.path.join(test_dir, x))
         for x in os.listdir(test_dir))
     return train_data, eval_data, test_data
+
+
+def read_datasets(basedir="../data", train_prefix="arc-agi_training", eval_prefix="arc-agi_evaluation", test_prefix="arc-agi_test"):
+    checked_path = Path(basedir) /"training"
+    if checked_path.exists():
+        return read_datasets_old(basedir)
+
+    train_data = read_single_dataset(basedir, prefix=train_prefix)
+    eval_data = read_single_dataset(basedir, prefix=eval_prefix)
+    test_data = read_single_dataset(basedir, prefix=test_prefix)
+    return train_data, eval_data, test_data
     
 
 def convert2samples(data):
-    return [ Sample(name, path) for name, path in data.items() ]
-    
+    if isinstance(data, OrderedDict):
+        return [ Sample(name, path) for name, path in data.items() ]
+    return [ Sample(name, puzzle_data) for name, puzzle_data in data]
+
 
 def save_predictions(predictor, ds, savepath, k=3, args=[], kwargs=dict(), verbose=True):
     all_data = []

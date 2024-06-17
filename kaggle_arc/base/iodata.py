@@ -98,29 +98,26 @@ class Sample:
     __slots__ = ["name", "train", "test"]
     
     def __init__(self, name, path):
-        with open(path) as f:
-            data = json.load(f)
         self.name = name
-        self.train = [
-            IOData(sample)
-            for sample in data.get('train', [])]
-        self.test = [
-            IOData(sample)
-            for sample in data.get('test', [])
-        ]
 
-    # @property
-    # def train(self):
-    #     return self._train
-    # 
-    # @property
-    # def test(self):
-    #     return self._test
-    # 
-    # @property
-    # def name(self):
-    #     return self._name
-    
+        if isinstance(path, str):
+            with open(path) as f:
+                puzzle_data = json.load(f)
+            solutions = None
+            # self.test = [ IOData(sample) for sample in puzzle_data.get('test', []) ]
+        else:
+            (puzzle_data, solutions) = path
+
+        self.train = [ IOData(sample) for sample in puzzle_data.get('train', []) ]
+
+        if solutions is None or len(solutions) == 0:
+            self.test = [ IOData(sample) for sample in puzzle_data.get('test', []) ]
+        else:
+            self.test = [
+                IOData(sample, output_field=Field(solution))
+                for sample, solution in zip(puzzle_data.get('test', []), solutions)
+            ]
+
     def predict(self, predictors):
         predictions = []
         for sample in self.iterate_test():
@@ -151,12 +148,7 @@ class Sample:
             ax.set_yticklabels([])
             ax.set_xticks([])
             ax.set_yticks([])
-            # ax = plt.gca()
-            # fig.colorbar(
-            #     cm.ScalarMappable(
-            #         norm=matplotlib.colors.Normalize(vmin=0, vmax=10),
-            #         cmap=sns.cubehelix_palette(10, as_cmap=True)), ax=ax)
-            #plt.gca().axis('off')
+
         if gs is None:
             gs = gridspec.GridSpec(ntrain + ntest, 1, figure=fig)
         if train_gs is None:
