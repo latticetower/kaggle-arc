@@ -90,6 +90,10 @@ class Field:
             return field
         new_data = [[rev.get(x, x) for x in line] for line in field.data]
         return Field(new_data)
+
+    @property
+    def to_array(self):
+        return [ list(line) for line in self.data ]
         
     @property
     def height(self):
