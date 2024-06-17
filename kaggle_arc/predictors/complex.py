@@ -1,4 +1,5 @@
 import rootutils
+
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 import numpy as np
@@ -10,10 +11,24 @@ from predictors.basic import AvailableAll
 from predictors.basic import IdPredictor, ZerosPredictor, ConstPredictor, FillPredictor
 
 from predictors.color_counting import ColorCountingPredictor
-from predictors.shapes import RepeatingPredictor, FractalPredictor, ResizingPredictor, MirrorPredictor, ConstantShaper
-from predictors.boosting_tree import BoostingTreePredictor, BoostingTreePredictor2, BoostingTreePredictor3
+from predictors.shapes import (
+    RepeatingPredictor,
+    FractalPredictor,
+    ResizingPredictor,
+    MirrorPredictor,
+    ConstantShaper,
+)
+from predictors.boosting_tree import (
+    BoostingTreePredictor,
+    BoostingTreePredictor2,
+    BoostingTreePredictor3,
+)
 from predictors.convolution import ConvolutionPredictor
-from predictors.graph_boosting_tree import GraphBoostingTreePredictor, GraphBoostingTreePredictor2, GraphBoostingTreePredictor3
+from predictors.graph_boosting_tree import (
+    GraphBoostingTreePredictor,
+    GraphBoostingTreePredictor2,
+    GraphBoostingTreePredictor3,
+)
 from predictors.decision_tree import AugmentedPredictor
 from predictors.subpattern import SubpatternMatcherPredictor
 from predictors.field2point import SimpleSummarizePredictor
@@ -38,9 +53,7 @@ class ComplexPredictor(Predictor, AvailableAll):
             self.verbose = verbose
 
     def train(self, iodata_list):
-        self.predictors = [
-            p for p in self.predictors
-            if p.is_available(iodata_list) ]
+        self.predictors = [p for p in self.predictors if p.is_available(iodata_list)]
         invalid_predictors = set()
         for i, p in enumerate(self.predictors):
             try:
@@ -50,8 +63,8 @@ class ComplexPredictor(Predictor, AvailableAll):
                     print(e)
                 invalid_predictors.add(i)
         self.predictors = [
-            p for i, p in enumerate(self.predictors)
-            if i not in invalid_predictors]
+            p for i, p in enumerate(self.predictors) if i not in invalid_predictors
+        ]
 
     def validate(self, iodata_list, k=3):
         scores = []
@@ -67,7 +80,7 @@ class ComplexPredictor(Predictor, AvailableAll):
         if len(scores) == 0:
             return 0.0
         return np.mean(scores)
-    
+
     def freeze_by_score(self, iodata_list, k=3):
         scores = []
         for p in self.predictors:
@@ -79,9 +92,9 @@ class ComplexPredictor(Predictor, AvailableAll):
                 score = -1
             scores.append(score)
         scores = np.asarray(scores)
-        #scores = scores[np.argwhere(scores>0)]
+        # scores = scores[np.argwhere(scores>0)]
         ids = np.argsort(scores)[::-1]
-        self.predictors = [ self.predictors[i] for i in ids if scores[i] >=0 ]
+        self.predictors = [self.predictors[i] for i in ids if scores[i] >= 0]
 
     def predict(self, field):
         for p in self.predictors:
@@ -93,7 +106,7 @@ class ComplexPredictor(Predictor, AvailableAll):
             except Exception as e:
                 if self.verbose:
                     print(e)
-                #continue
+                # continue
         # for p in self.predictors:
         #     try:
         #         v = next(p.predict(field))
@@ -102,7 +115,7 @@ class ComplexPredictor(Predictor, AvailableAll):
         #     yield v
 
     def __str__(self):
-        s = ";".join([ str(p) for p in self.predictors ])
+        s = ";".join([str(p) for p in self.predictors])
         return f"ComplexPredictor({s})"
 
 
@@ -115,19 +128,19 @@ class DefaultComplexPredictor(ComplexPredictor):
             RepeatingPredictor,
             FractalPredictor,
             ResizingPredictor,
-            GraphBoostingTreePredictor,#no impact
+            GraphBoostingTreePredictor,  # no impact
             GraphBoostingTreePredictor3,
             ConstantShaper,
-            #BoostingTreePredictor,
-            #BoostingTreePredictor2,
+            # BoostingTreePredictor,
+            # BoostingTreePredictor2,
             PointConnectorPredictor,
             BoostingTreePredictor3,
             SubpatternMatcherPredictor,
-            #AugmentedPredictor
+            # AugmentedPredictor
             FillPredictor,
             MirrorPredictor,
             SimpleSummarizePredictor,
-            #(ConvolutionPredictor, [], {'loss': 'mse'}),
-            #(ConvolutionPredictor, [], {'loss': 'dice'})
-            ]
+            # (ConvolutionPredictor, [], {'loss': 'mse'}),
+            # (ConvolutionPredictor, [], {'loss': 'dice'})
+        ]
         super(DefaultComplexPredictor, self).__init__(predictor_args)

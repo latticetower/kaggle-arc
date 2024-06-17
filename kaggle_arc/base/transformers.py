@@ -1,4 +1,5 @@
 import rootutils
+
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 import numpy as np
@@ -8,7 +9,7 @@ from base.iodata import IOData
 
 def resize_output(iodata):
     if isinstance(iodata, list):
-        return [ resize_output(data) for data in iodata ]
+        return [resize_output(data) for data in iodata]
     h, w = iodata.input_field.shape
     if iodata.output_field is not None:
         output = iodata.output_field.data[:h, :w]
@@ -16,7 +17,8 @@ def resize_output(iodata):
     else:
         output = None
     return IOData(input_field=iodata.input_field, output_field=output)
-    
+
+
 def crop_data(data):
     h = np.argwhere(data.std(0) > 0).flatten()
     w = np.argwhere(data.std(1) > 0).flatten()

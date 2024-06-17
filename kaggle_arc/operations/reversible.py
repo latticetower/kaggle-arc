@@ -1,4 +1,5 @@
 import rootutils
+
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 import numpy as np
@@ -7,11 +8,14 @@ from base.field import *
 from base.iodata import *
 from operations.basic import candidate_functions
 
+
 class ReversibleOperation:
     def __init__(self):
         pass
+
     def do(self, field):
         pass
+
     def od(self, field):
         pass
 
@@ -30,42 +34,38 @@ def split2shape(field, target_shape, hsep=0, wsep=0, outer_sep=False):
     splitters = np.ones(field.data.shape, dtype=field.dtype)
     for i in range(h):
         line = []
-        hstart = outer_sep*hsep + i*(hpart + hsep)
+        hstart = outer_sep * hsep + i * (hpart + hsep)
         for j in range(w):
-            wstart = outer_sep*wsep + j*(wpart + wsep)
+            wstart = outer_sep * wsep + j * (wpart + wsep)
             subfield = Field(
-                field.data[
-                    hstart : hstart + hpart, 
-                    wstart : wstart + wpart])
+                field.data[hstart : hstart + hpart, wstart : wstart + wpart]
+            )
             line.append(subfield)
-            splitters[ hstart : hstart + hpart, wstart : wstart + wpart] = 0
+            splitters[hstart : hstart + hpart, wstart : wstart + wpart] = 0
         splitted.append(line)
-    cf = ComplexField(splitted, separator=splitters*field.data, splitter=splitters)
+    cf = ComplexField(splitted, separator=splitters * field.data, splitter=splitters)
     return cf
 
 
 def split_by_shape(field, subshape, hsep=0, wsep=0, outer_sep=False):
     h, w = subshape
     fh, fw = field.shape
-    #hpart = (fh - outer_sep*hsep) // h - hsep
-    #wpart = (fw - outer_sep*wsep) // w - wsep
+    # hpart = (fh - outer_sep*hsep) // h - hsep
+    # wpart = (fw - outer_sep*wsep) // w - wsep
 
     splitted = []
     splitters = np.ones(field.data.shape, dtype=field.dtype)
-    
-    for i in range(outer_sep*1, fh, h + hsep):
+
+    for i in range(outer_sep * 1, fh, h + hsep):
         line = []
         sep_line = []
-        for j in range(outer_sep*1, fw, w + wsep):
-            subfield = Field(
-                field.data[
-                    i : i + h, 
-                    j : j + w])
+        for j in range(outer_sep * 1, fw, w + wsep):
+            subfield = Field(field.data[i : i + h, j : j + w])
             line.append(subfield)
-            splitters[i : i + h, j: j + w] = 0
-            #sep_line.append(Field(field.data[i + h:i+h+hsep]))
+            splitters[i : i + h, j : j + w] = 0
+            # sep_line.append(Field(field.data[i + h:i+h+hsep]))
         splitted.append(line)
-    sep = splitters*field.data
+    sep = splitters * field.data
     cf = ComplexField(splitted, separator=sep, splitter=splitters)
     return cf
 
@@ -75,7 +75,7 @@ def collect_field(multifield, hsep=0, wsep=0, outer_sep=False, sep_color=0):
     for line in multifield.data:
         line_data = []
         shape = list({x.shape for x in line})[0]
-        sep = np.ones((shape[0], wsep), dtype=np.uint8)*sep_color
+        sep = np.ones((shape[0], wsep), dtype=np.uint8) * sep_color
         if outer_sep and hsep > 0:
             line_data.append(sep)
         for x in line:
@@ -84,11 +84,13 @@ def collect_field(multifield, hsep=0, wsep=0, outer_sep=False, sep_color=0):
                 line_data.append(sep)
         if not outer_sep and wsep > 0:
             line_data = line_data[:-1]
-        line_data = np.concatenate(line_data, 1)  # np.concatenate([x.data for x in line], 1)
+        line_data = np.concatenate(
+            line_data, 1
+        )  # np.concatenate([x.data for x in line], 1)
         all_lines.append(line_data)
     # collect all line parts
     shape = list({x.shape for x in all_lines})[0]
-    sep = np.ones((hsep, shape[1]))*sep_color
+    sep = np.ones((hsep, shape[1])) * sep_color
     line_data = []
     if outer_sep:
         line_data.append(sep)
@@ -117,24 +119,38 @@ def decrease2color(data, background=0):
 
 
 class ReversibleSplit(ReversibleOperation):
-    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0,
-            parent=None, splitter_func=split2shape):
+    def __init__(
+        self,
+        shape,
+        hsep=0,
+        wsep=0,
+        outer_sep=False,
+        sep_color=0,
+        parent=None,
+        splitter_func=split2shape,
+    ):
         self.shape = shape
         self.hsep = hsep
         self.wsep = wsep
         self.outer_sep = outer_sep
         self.sep_color = sep_color
-        parent=None,
+        parent = (None,)
         self.splitter_func = splitter_func
 
     def do(self, field):
-        splitted = self.splitter_func(field, self.shape,
-            hsep=self.hsep, wsep=self.wsep, outer_sep=self.outer_sep)
+        splitted = self.splitter_func(
+            field, self.shape, hsep=self.hsep, wsep=self.wsep, outer_sep=self.outer_sep
+        )
         return splitted
 
     def od(self, multifield):
-        field = collect_field(multifield,
-            hsep=self.hsep, wsep=self.wsep, outer_sep=self.outer_sep, sep_color=self.sep_color)
+        field = collect_field(
+            multifield,
+            hsep=self.hsep,
+            wsep=self.wsep,
+            outer_sep=self.outer_sep,
+            sep_color=self.sep_color,
+        )
         return field
 
     def __str__(self):
@@ -142,8 +158,16 @@ class ReversibleSplit(ReversibleOperation):
 
 
 class ReversibleCombine(ReversibleOperation):
-    def __init__(self, shape, hsep=0, wsep=0, outer_sep=False, sep_color=0,
-            parent=None, splitter_func=split2shape):
+    def __init__(
+        self,
+        shape,
+        hsep=0,
+        wsep=0,
+        outer_sep=False,
+        sep_color=0,
+        parent=None,
+        splitter_func=split2shape,
+    ):
         self.shape = shape
         self.hsep = hsep
         self.wsep = wsep
@@ -154,8 +178,10 @@ class ReversibleCombine(ReversibleOperation):
         self.parent = None
 
     def train(self, io_list):
-        #todo: correctly process case when there is no splitter
-        get_color = lambda m: np.unique(m.params['separator'][np.where(m.params['splitter'])])[0]
+        # todo: correctly process case when there is no splitter
+        get_color = lambda m: np.unique(
+            m.params["separator"][np.where(m.params["splitter"])]
+        )[0]
         pairs = [(m, self.od(output_field)) for m, output_field in io_list]
         color_pairs = [(get_color(m), get_color(o)) for m, o in pairs]
         scores = []
@@ -171,32 +197,39 @@ class ReversibleCombine(ReversibleOperation):
 
     def do(self, multifield):
         if self.hsep > 0 or self.wsep > 0:
-            colors = np.unique(multifield.params['separator'][np.where(multifield.params['splitter'])])
+            colors = np.unique(
+                multifield.params["separator"][np.where(multifield.params["splitter"])]
+            )
         else:
             colors = []
         sep_color = self.sep_color
         if len(colors) > 0 and self.color_func is not None:
             sep_color = self.color_func(colors[0])
 
-        field = collect_field(multifield,
-            hsep=self.hsep, wsep=self.wsep, outer_sep=self.outer_sep, sep_color=sep_color)
+        field = collect_field(
+            multifield,
+            hsep=self.hsep,
+            wsep=self.wsep,
+            outer_sep=self.outer_sep,
+            sep_color=sep_color,
+        )
         return field
-    
+
     def od(self, field):
-        splitted = self.splitter_func(field, self.shape,
-            hsep=self.hsep, wsep=self.wsep, outer_sep=self.outer_sep)
+        splitted = self.splitter_func(
+            field, self.shape, hsep=self.hsep, wsep=self.wsep, outer_sep=self.outer_sep
+        )
         return splitted
-    
+
     def __str__(self):
         return f"ReversibleCombine({self.shape})"
-
 
 
 class WrappedOperation:
     def __init__(self, preprocess=None, postprocess=None):
         self.preprocess = preprocess
         self.postprocess = postprocess
-        
+
     def wrap(self, iodata):
         if isinstance(iodata, IOData):
             i = iodata.input_field
@@ -211,7 +244,7 @@ class WrappedOperation:
         return forward_i, reverse_o
 
     def train(self, iodata_list):
-        #TODO: need to implement this
+        # TODO: need to implement this
         data = [
             (self.preprocess.do(iodata.input_field), iodata.output_field)
             for iodata in iodata_list
@@ -240,8 +273,9 @@ class WrappedOperationList:
         il = iodata_list
         for op in self.operations:
             op.train(il)
-            il = [ op.wrap(io) for io in il ]
+            il = [op.wrap(io) for io in il]
         pass
+
     def wrap(self, iodata):
         if isinstance(iodata, IOData):
             i = iodata.input_field

@@ -1,7 +1,9 @@
 import rootutils
+
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 from predictors.basic import Predictor
+
 
 def to_tuple(field):
     return tuple([x for line in field.data for x in line])
@@ -22,13 +24,13 @@ class SorterCFPredictor(Predictor):
                 return False
             if i.shape != o.shape:
                 return False
-            
+
             it = sorted([to_tuple(f) for f in i.flat_iter()])
             ot = sorted([to_tuple(f) for f in o.flat_iter()])
             if it != ot:
                 return False
         return True
-        
+
     def train(self, iodata_list):
         pass
 

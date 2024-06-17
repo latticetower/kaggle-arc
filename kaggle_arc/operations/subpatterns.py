@@ -1,27 +1,31 @@
 """
 Functions for subpattern extraction
 """
+
 import rootutils
+
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 import numpy as np
+
 
 def get_suffixes(s, wildcard=0):
     suffix_len = 0
     m = len(s)
     suffixes = [0 for i in range(m)]
-    i=1
+    i = 1
     while i < m:
         if s[i] == wildcard or s[suffix_len] == wildcard or s[i] == s[suffix_len]:
             suffix_len += 1
             suffixes[i] = suffix_len
             i += 1
-        elif suffix_len!=0:
-            suffix_len = suffixes[suffix_len-1]
+        elif suffix_len != 0:
+            suffix_len = suffixes[suffix_len - 1]
         else:
             suffixes[i] = 0
-            i+=1
+            i += 1
     return suffixes
+
 
 def get_repeat_length(suffixes):
     n = len(suffixes)
@@ -30,22 +34,22 @@ def get_repeat_length(suffixes):
         return n
     return n - k
 
+
 def check_subpattern(data, r, c, wildcard=0):
     for line in data:
-        condition = np.all([
-            x == y or x==wildcard or y==wildcard
-            for x, y in zip(line, line[c:])
-        ])
+        condition = np.all(
+            [x == y or x == wildcard or y == wildcard for x, y in zip(line, line[c:])]
+        )
         if not condition:
             return False
     for line in data.T[:c]:
-        condition = np.all([
-            x == y or x==wildcard or y==wildcard
-            for x, y in zip(line, line[c:])
-        ])
+        condition = np.all(
+            [x == y or x == wildcard or y == wildcard for x, y in zip(line, line[c:])]
+        )
         if not condition:
             return False
     return True
+
 
 def get_subpattern(data, wildcard=0, check_passed=True):
     repeats = []
@@ -53,13 +57,13 @@ def get_subpattern(data, wildcard=0, check_passed=True):
         s = get_suffixes(line, wildcard)
         r = get_repeat_length(s)
         repeats.append(r)
-    #print(repeats)
+    # print(repeats)
     if check_passed:
         col = int(np.median(repeats))
     else:
         col = np.lcm.reduce(repeats)
-    #print(col)
-    crepeats=[]
+    # print(col)
+    crepeats = []
     if check_passed:
         subset = data.T
     else:
@@ -71,7 +75,7 @@ def get_subpattern(data, wildcard=0, check_passed=True):
             if r == len(s):
                 continue
         crepeats.append(r)
-    #print(crepeats)
+    # print(crepeats)
     if check_passed:
         if len(crepeats) == 0:
             row = len(data)

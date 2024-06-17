@@ -2,7 +2,9 @@
 Predictor based on this notebook
 https://www.kaggle.com/szabo7zoltan/colorandcountingmoduloq
 """
+
 import rootutils
+
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 from base.iodata import IOData
@@ -12,8 +14,9 @@ from predictors.basic import AvailableEqualShape
 
 import numpy as np
 
+
 def get_p1_p2(i, j, n, k, v, q1, q2):
-    if v == 0 or v ==2:
+    if v == 0 or v == 2:
         p1 = i % q1
     else:
         p1 = (n - 1 - i) % q1
@@ -35,14 +38,14 @@ class ColorCountingPredictor(Predictor, AvailableEqualShape):
         pairs = [
             (Q1, Q2)
             for t in range(15)
-            for Q1 in range(1, 8) 
+            for Q1 in range(1, 8)
             for Q2 in range(1, 8)
             if Q1 + Q2 == t
         ]
         h, w = list(zip(*[iodata.input_field.shape for iodata in iodata_list]))
         hmax = max(h)
         wmax = max(w)
-        pairs = [(Q1, Q2) for Q1, Q2 in pairs if Q1 <hmax and Q2 < wmax]
+        pairs = [(Q1, Q2) for Q1, Q2 in pairs if Q1 < hmax and Q2 < wmax]
         possible = True
         for Q1, Q2 in pairs:
             for v in range(4):
@@ -77,7 +80,7 @@ class ColorCountingPredictor(Predictor, AvailableEqualShape):
                             else:
                                 color2 = 0 + iodata.output_field.data[i, j]
                             if color2 != iodata.output_field.data[i, j]:
-                                possible = False 
+                                possible = False
                                 break
                         if not possible:
                             break
@@ -96,10 +99,10 @@ class ColorCountingPredictor(Predictor, AvailableEqualShape):
             for v in self.predict(field.input_field):
                 yield v
             return
-        #while True:
+        # while True:
         if self.best_Dict is None:
             return
-        
+
         n, k = field.shape
         answer = np.zeros(field.shape, dtype=field.dtype)
         for i in range(n):
@@ -109,7 +112,7 @@ class ColorCountingPredictor(Predictor, AvailableEqualShape):
                 rule = (p1, p2, color1)
                 answer[i, j] = self.best_Dict.get(rule, color1)
         yield Field(answer)
-        #yield field.consts(self.value, multiplier=self.multiplier)
+        # yield field.consts(self.value, multiplier=self.multiplier)
 
     def __str__(self):
         if self.best_Dict is None:

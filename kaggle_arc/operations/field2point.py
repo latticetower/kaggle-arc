@@ -1,7 +1,9 @@
 """
 First we define methods for different field to color conversion operations. 
 """
+
 import rootutils
+
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 
@@ -13,14 +15,17 @@ from operations.basic import Operation
 from base.field import *
 from base.iodata import *
 
+
 class IrreversibleOperation:
     def __init__(self):
         pass
+
     def do(self):
         pass
 
+
 def most_frequent_color(data, bg=None):
-    #print("most frequent color")
+    # print("most frequent color")
     if bg is None:
         return np.argmax([np.sum(data == i) for i in range(10)])
     s = [np.sum(data == i) for i in range(10) if i != bg]
@@ -28,14 +33,15 @@ def most_frequent_color(data, bg=None):
         return np.argmax(s)
     return bg
 
+
 def least_frequent_color(data, bg=None):
-    #print("least frequent color")
+    # print("least frequent color")
     if bg is None:
         s = {i: np.sum(data == i) for i in range(10)}
         s = [(k, v) for k, v in s.items() if v > 0]
         s = sorted(s, key=lambda x: x[1])
         if len(s) > 0:
-            #print(s)
+            # print(s)
             return s[0][0]
         return 0
     s = {i: np.sum(data == i) for i in range(10) if i != bg}
@@ -45,26 +51,32 @@ def least_frequent_color(data, bg=None):
         return s[0][0]
     return bg
 
+
 def count_color_area(data, bg=0):
-    #print("color area")
+    # print("color area")
     return np.max(label(data != bg))
 
+
 def count_color_area_bg(data, bg=0):
-    #print("color area bg")
+    # print("color area bg")
     return np.max(label(data == bg))
+
 
 def compute_color_gradient(data):
     cg0 = [np.sum(data[i]) for i in range(data.shape[0])]
     cg1 = [np.sum(data[:, i]) for i in range(data.shape[1])]
     return tuple(cg0), tuple(cg1)
 
+
 def compute_weight_gradient(data, bg=0):
     return compute_color_gradient(data != bg)
 
+
 def count_colors(data, bg=None):
-    #print("count colors")
-    #print(len(np.unique(data)))
+    # print("count colors")
+    # print(len(np.unique(data)))
     return len(np.unique(data))
+
 
 def make_positional_color_selector(x, y):
     def pos_color_selector(data, bg=None):
@@ -77,13 +89,14 @@ def make_positional_color_selector(x, y):
         else:
             y0 = y
         return data.data[x0, y0]
+
     return pos_color_selector
 
 
 class SimpleSummarizeOperation(IrreversibleOperation):
     def __init__(self):
         self.bg = None
-        self.func = None #lambda x, bg=0: x
+        self.func = None  # lambda x, bg=0: x
 
     def train(self, iodata_list):
         if isinstance(iodata_list[0], IOData):
@@ -97,14 +110,17 @@ class SimpleSummarizeOperation(IrreversibleOperation):
             least_frequent_color,
             count_color_area,
             count_color_area_bg,
-            count_colors
+            count_colors,
         ]
-        color_dict = {tuple((i.data == i.data[0, 0]).flatten()): o.data[0, 0] for i, o in iodata_list}
+        color_dict = {
+            tuple((i.data == i.data[0, 0]).flatten()): o.data[0, 0]
+            for i, o in iodata_list
+        }
         # candidates.append(
         #     lambda x, bg: color_dict.get(tuple((x.data == x.data[0, 0]).flatten()), 0)
         # )
-        #candidates.extend([])
-        
+        # candidates.extend([])
+
         h, w = list(zip(*[i.shape for i, o in iodata_list]))
         hmin = np.min(h)
         wmin = np.min(w)
@@ -114,24 +130,23 @@ class SimpleSummarizeOperation(IrreversibleOperation):
                     make_positional_color_selector(i, j),
                     make_positional_color_selector(i, -j),
                     make_positional_color_selector(-i, j),
-                    make_positional_color_selector(-i, -j)
+                    make_positional_color_selector(-i, -j),
                 ]
                 candidates.extend(func)
-        
+
         best_candidate = candidates[0]
         best_bg = dict()
         best_score = 0
-        
+
         for candidate in candidates:
             best_bg[candidate] = None
             candidate_score = 0
-            #candidate_bg = None
+            # candidate_bg = None
             scores = []
             best_sample_score = 0
-            for bg in list(range(10)) + [ None ]:
+            for bg in list(range(10)) + [None]:
                 score = [
-                    Field.score(
-                        Field([[candidate(i.data, bg=bg)]]), o)
+                    Field.score(Field([[candidate(i.data, bg=bg)]]), o)
                     for i, o in iodata_list
                 ]
                 mean_score = np.mean(score)
@@ -139,40 +154,42 @@ class SimpleSummarizeOperation(IrreversibleOperation):
                     best_sample_score = mean_score
                     best_bg[candidate] = [bg]
             candidate_score = best_sample_score
-            #print(candidate_score, best_bg)
-            #print(candidate_score)
-            #best_bg[candidate_score] = (candidatecandidate_bg
+            # print(candidate_score, best_bg)
+            # print(candidate_score)
+            # best_bg[candidate_score] = (candidatecandidate_bg
             if candidate_score > best_score:
                 best_score = candidate_score
                 best_candidate = candidate
-            
+
         self.func = best_candidate
         self.bg = best_bg[best_candidate]
-        #self.bg = [self.bg[k] for k in sorted(self.bg)]
-        #print(self.bg)
-        #most_frequent_color
+        # self.bg = [self.bg[k] for k in sorted(self.bg)]
+        # print(self.bg)
+        # most_frequent_color
         pass
 
     def do(self, field, bg=None):
         if len(self.bg) != 1:
-            #print("use bg from param", self.bg, bg)
+            # print("use bg from param", self.bg, bg)
             pixel = self.func(field, bg=bg)
         else:
-            #print(self.bg)
+            # print(self.bg)
             pixel = self.func(field, bg=self.bg[0])
-        #print(pixel, self.func)
-        #print(np.asarray(pixel))
+        # print(pixel, self.func)
+        # print(np.asarray(pixel))
         return Field([[pixel]])
 
 
 class ComplexSummarizeOperation(IrreversibleOperation):
     def __init__(self):
         self.bg = None
-        self.func = None #lambda x, bg=0: x
+        self.func = None  # lambda x, bg=0: x
 
     def train(self, complex_iodata_list):
         if isinstance(complex_iodata_list[0], IOData):
-            complex_iodata_list = [(x.input_field, x.output_field) for x in complex_iodata_list]
+            complex_iodata_list = [
+                (x.input_field, x.output_field) for x in complex_iodata_list
+            ]
         # elif isinstance(complex_iodata_list[0][0], ComplexField):
         #     complex_iodata_list = [
         #         (xi, xo) for i, o in complex_iodata_list
@@ -182,26 +199,25 @@ class ComplexSummarizeOperation(IrreversibleOperation):
             least_frequent_color,
             count_color_area,
             count_color_area_bg,
-            count_colors
+            count_colors,
         ]
         best_candidate = candidates[0]
         best_bg = dict()
         best_score = 0
-        
+
         for candidate in candidates:
             best_bg[candidate] = dict()
             candidate_score = 0
-            #candidate_bg = None
+            # candidate_bg = None
             scores = []
             for k, (inp, out) in enumerate(complex_iodata_list):
-                
+
                 iodata_list = list(zip(inp.flat_iter(), out.flat_iter()))
-                #iodata_list = list(zip([x for xs in inp for x in xs], [x for xs in out for x in xs]))
+                # iodata_list = list(zip([x for xs in inp for x in xs], [x for xs in out for x in xs]))
                 best_sample_score = 0
-                for bg in list(range(10)) + [ None ]:
+                for bg in list(range(10)) + [None]:
                     score = [
-                        Field.score(
-                        Field([[candidate(i.data, bg=bg)]]), o)
+                        Field.score(Field([[candidate(i.data, bg=bg)]]), o)
                         for i, o in iodata_list
                     ]
                     mean_score = np.mean(score)
@@ -210,13 +226,13 @@ class ComplexSummarizeOperation(IrreversibleOperation):
                         best_bg[candidate][k] = bg
                 scores.append(best_sample_score)
             candidate_score = np.mean(scores)
-            #print(candidate_score, best_bg)
-            #print(candidate_score)
-            #best_bg[candidate_score] = (candidatecandidate_bg
+            # print(candidate_score, best_bg)
+            # print(candidate_score)
+            # best_bg[candidate_score] = (candidatecandidate_bg
             if candidate_score > best_score:
                 best_score = candidate_score
                 best_candidate = candidate
-                
+
         self.func = best_candidate
         self.bg = best_bg[best_candidate]
         self.bg = [self.bg[k] for k in sorted(self.bg)]
@@ -224,17 +240,17 @@ class ComplexSummarizeOperation(IrreversibleOperation):
         for k in self.bg:
             bg.add(k)
         self.bg = list(bg)
-        #print(self.bg)
-        #most_frequent_color
+        # print(self.bg)
+        # most_frequent_color
         pass
 
     def do(self, field, bg=None):
         if len(self.bg) != 1:
-            #print("use bg from param", self.bg, bg)
+            # print("use bg from param", self.bg, bg)
             pixel = self.func(field, bg=bg)
         else:
-            #print(self.bg)
+            # print(self.bg)
             pixel = self.func(field, bg=self.bg[0])
-        #print(pixel, self.func)
-        #print(np.asarray(pixel))
+        # print(pixel, self.func)
+        # print(np.asarray(pixel))
         return Field([[pixel]])
