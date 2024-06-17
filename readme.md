@@ -1,5 +1,5 @@
 
-![Project image](https://github.com/latticetower/kaggle-arc/blob/main/assets/ministry_of_predictors.png)
+![Project image](https://github.com/latticetower/kaggle-arc/blob/main/images/ministry_of_predictors.png)
 
 # Description
 
