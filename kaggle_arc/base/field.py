@@ -4,11 +4,11 @@ root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True
 import os
 import numpy as np
 import matplotlib
-try:
-    if not matplotlib.is_interactive():
-        matplotlib.use("svg")
-except:
-    pass
+# try:
+#     if not matplotlib.is_interactive():
+#         matplotlib.use("svg")
+# except:
+#     pass
 
 import matplotlib.pyplot as plt
 import seaborn as sns
