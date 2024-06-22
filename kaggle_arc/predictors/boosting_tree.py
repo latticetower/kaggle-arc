@@ -786,7 +786,7 @@ class BoostingTreePredictor3(Predictor, AvailableEqualShape):
         )
         encoded_target = self.target_encoder.fit_transform(target)
         # print(feat.shape, target.shape)
-        self.xgb.fit(feat, target, verbose=0)
+        self.xgb.fit(feat, encoded_target, verbose=0)
 
     def predict(self, field):
         if isinstance(field, IOData):
