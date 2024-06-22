@@ -4,6 +4,7 @@ root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True
 
 import numpy as np
 from itertools import islice
+from fractions import Fraction
 
 from base.iodata import IOData
 from base.field import Field
@@ -137,6 +138,21 @@ class AvailableWithIntMultiplier:
                 self.m1 = h
                 self.m2 = w
                 return True
+        return False
+
+
+class AvailableWithFractionalMultiplier:
+    def is_available(self, iodata_list):
+        all_sizes = set()
+        for iodata in iodata_list:
+            m1 = Fraction(iodata.output_field.height, iodata.input_field.height)
+            m2 = Fraction(iodata.output_field.width, iodata.input_field.width)
+            all_sizes.add((m1, m2))
+        if len(all_sizes) == 1:
+            h, w = all_sizes.pop()
+            self.m1 = h
+            self.m2 = w
+            return True
         return False
 
 
