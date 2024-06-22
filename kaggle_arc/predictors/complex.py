@@ -67,6 +67,8 @@ class ComplexPredictor(Predictor, AvailableAll):
         ]
 
     def validate(self, iodata_list, k=3):
+        if len(self.predictors) == 0:
+            return 0.0
         scores = []
         for iodata in iodata_list:
             pred_scores = []
