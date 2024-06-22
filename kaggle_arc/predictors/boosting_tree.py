@@ -10,7 +10,7 @@ from xgboost import XGBClassifier
 from itertools import product
 import itertools
 import skimage.measure as skmeasure
-from sklean.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
 from base.field import Field
