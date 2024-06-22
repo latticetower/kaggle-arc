@@ -6,15 +6,15 @@ import rootutils
 
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
-from skimage.measure import label
+import skimage.measure as sk_measure
 from itertools import product
 import numpy as np
 
 
 def get_data_regions(data, connectivity=None):
     "returns distinct regions for colors 0-9"
-    l = label(data, connectivity=connectivity)
-    lz = label(data == 0, connectivity=connectivity)
+    l = sk_measure.label(data, connectivity=connectivity)
+    lz = sk_measure.label(data == 0, connectivity=connectivity)
     m = np.max(l)
     lz += m
     ids = np.where(data == 0)
@@ -107,7 +107,7 @@ def get_region_params(r, connectivity=None):
         params[rid]["is_rectangular"] = is_rectangular
         params[rid]["is_square"] = is_rectangular and xmax - xmin + 1 == ymax - ymin + 1
         area = region[xmin : xmax + 1, ymin : ymax + 1]
-        area2 = conv[xmin : xmax + 1, ymin : ymax + 1]
+        convex_area = conv[xmin : xmax + 1, ymin : ymax + 1]
 
         operations = [
             lambda inp: np.fliplr(inp),
@@ -122,8 +122,11 @@ def get_region_params(r, connectivity=None):
             lambda inp: np.flipud(np.fliplr(inp)),
         ]
         for i, op in enumerate(operations):
-            params[rid][f"flip_{i}"] = np.all(op(area) == area)
-            params[rid][f"flip_conv_{i}"] = np.all(op(area) == area)
+            transformed_area = op(area)
+            params[rid][f"flip_{i}"] = (transformed_area.shape == area.shape) and np.all(transformed_area == area)
+            transformed_convex_area = op(convex_area)
+            params[rid][f"flip_conv_{i}"] = (transformed_convex_area.shape == convex_area.shape) and np.all(transformed_convex_area == convex_area)
+
         inner_regions = [
             x for x in np.unique(r[np.where(no_holes)]) if x != rid and x != 0
         ]
@@ -136,5 +139,5 @@ def get_region_params(r, connectivity=None):
 
         params[rid]["contour_size"] = np.sum(contour)
         params[rid]["interior_size"] = np.sum(interior)
-        # params[rid]['has_holes']
+
     return params, maps

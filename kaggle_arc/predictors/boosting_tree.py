@@ -15,7 +15,7 @@ import numpy as np
 
 from base.field import Field
 from base.iodata import IOData
-from base.utils import *
+import base.utils as utils
 
 from predictors.basic import *
 from operations.basic import Repaint
@@ -334,11 +334,11 @@ class BTFeatureExtractor:
             + [f"flip_conv_{i}" for i in range(10)]
         )
 
-        regions0 = get_data_regions(field.data)
-        params0, maps0 = get_region_params(regions0)
+        regions0 = utils.get_data_regions(field.data)
+        params0, maps0 = utils.get_region_params(regions0)
 
-        regions1 = get_data_regions(field.data, connectivity=1)
-        params1, maps1 = get_region_params(regions1, connectivity=1)
+        regions1 = utils.get_data_regions(field.data, connectivity=1)
+        params1, maps1 = utils.get_region_params(regions1, connectivity=1)
 
         # feat = np.zeros((nrows*ncols, nfeat))
         all_features = []
