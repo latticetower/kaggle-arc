@@ -344,16 +344,17 @@ class GraphBoostingTreePredictor2(Predictor):
         )
         if inputs.shape[0] < 1:
             return field
-        predictions = []
+        all_predictions = []
         # print(inputs.shape, len(graph_data), len(self.xgb_classifiers))
         # print(len(self.xgb_classifiers), inputs.shape)
         for i in range(min(inputs.shape[0], self.ncomponents)):
             xgb = self.xgb_classifiers[i]
             encoded_predictions = xgb.predict([inputs[i]])
             predictions = self.target_encoders[i].inverse_transform(encoded_predictions)
-            predictions.append(predictions)
+            all_predictions.append(predictions)
         # result = repainter(preds).tolist()
-        for comp, color in zip(graph_data, predictions):
+        # TODO: check dimensions
+        for comp, color in zip(graph_data, all_predictions):
             for i, j in comp["pos"]:
                 prediction_data[i, j] = color
 
