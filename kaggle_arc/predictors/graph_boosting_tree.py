@@ -9,6 +9,7 @@ root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True
 import networkx as nx
 import numpy as np
 from xgboost import XGBClassifier
+from sklearn.preprocessing import LabelEncoder
 
 from predictors.basic import Predictor, AvailableEqualShape
 from predictors.boosting_tree import BTFeatureExtractor
@@ -210,6 +211,7 @@ class GraphBoostingTreePredictor(Predictor, AvailableEqualShapeAndComponents):
             objective="multi:softmax",
             num_class=10,
         )
+        self.target_encoder = LabelEncoder()
 
     def train(self, iodata_list):
         train_x, train_y_bin, train_y = list(
@@ -223,10 +225,11 @@ class GraphBoostingTreePredictor(Predictor, AvailableEqualShapeAndComponents):
         train_x = np.concatenate(train_x, 0)
         train_y_bin = np.concatenate(train_y_bin, 0)
         train_y = np.concatenate(train_y, 0)
+        train_y_encoded = self.target_encoder.fit_transform(train_y)
         # print(train_y_bin, train_y)
         # feat, target, _ = GraphFeatureExtractor.prepare_graph_features(iodata_list)
-        self.xgb_binary.fit(train_x, train_y_bin, verbose=-1)
-        self.xgb.fit(train_x, train_y, verbose=-1)
+        self.xgb_binary.fit(train_x, train_y_bin, verbose=0)
+        self.xgb.fit(train_x, train_y_encoded, verbose=0)
 
     def predict(self, field):
         if isinstance(field, IOData):
@@ -239,7 +242,8 @@ class GraphBoostingTreePredictor(Predictor, AvailableEqualShapeAndComponents):
             field
         )
         preds_binary = self.xgb_binary.predict(inputs)
-        preds_colors = self.xgb.predict(inputs)  # .tolist()
+        preds_colors_encoded = self.xgb.predict(inputs)  # .tolist()
+        preds_colors = self.target_encoder.inverse_transform(preds_colors_encoded)
         # result = repainter(preds).tolist()
         for comp, cbin, new_col in zip(graph_data, preds_binary, preds_colors):
             color = int(new_col) if cbin > 0.5 else comp["color"]
@@ -260,6 +264,7 @@ class GraphBoostingTreePredictor2(Predictor):
         # self.xgb =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1,
         #    objective="multi:softmax", num_class=10)
         self.xgb_classifiers = []
+        self.target_encoders = []
 
     def is_available(self, iodata_list):
         for iodata in iodata_list:
@@ -320,8 +325,11 @@ class GraphBoostingTreePredictor2(Predictor):
                 objective="multi:softmax",
                 num_class=10,
             )
-            xgb.fit(features, target)
+            te = LabelEncoder()
+            encoded_target = te.fit_transform(target)
+            xgb.fit(features, encoded_target)
             self.xgb_classifiers.append(xgb)
+            self.target_encoders.append(te)
 
     def predict(self, field):
         if isinstance(field, IOData):
@@ -341,10 +349,11 @@ class GraphBoostingTreePredictor2(Predictor):
         # print(len(self.xgb_classifiers), inputs.shape)
         for i in range(min(inputs.shape[0], self.ncomponents)):
             xgb = self.xgb_classifiers[i]
-            predictions.append(xgb.predict([inputs[i]]))
+            encoded_predictions = xgb.predict([inputs[i]])
+            predictions = self.target_encoders[i].inverse_transform(encoded_predictions)
+            predictions.append(predictions)
         # result = repainter(preds).tolist()
-        for comp, pred in zip(graph_data, predictions):
-            color = pred
+        for comp, color in zip(graph_data, predictions):
             for i, j in comp["pos"]:
                 prediction_data[i, j] = color
 
@@ -370,6 +379,7 @@ class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
             num_class=10,
         )
         self.use_zeros = True
+        self.target_encoder = LabelEncoder()
 
     def _make_train_binary_features(self, iodata_list):
         train_x_binary, train_y_binary = list(
@@ -390,14 +400,15 @@ class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
         # train_x, train_y_bin, train_y = list(
         train_x_binary, train_y_binary = self._make_train_binary_features(iodata_list)
         # feat, target, _ = GraphFeatureExtractor.prepare_graph_features(iodata_list)
-        self.xgb_binary.fit(train_x_binary, train_y_binary, verbose=-1)
+        self.xgb_binary.fit(train_x_binary, train_y_binary, verbose=0)
         # print("binary",train_y_binary)
 
         feat, target, _ = BTFeatureExtractor.get_features(
             iodata_list, features_maker=BTFeatureExtractor.make_features_v2
         )
+        encoded_target = self.target_encoder.fit_transform(target)
         # print(target)
-        self.xgb.fit(feat, target, verbose=-1)
+        self.xgb.fit(feat, encoded_target, verbose=0)
         # next - train xgboost
 
     def validate_binary(self, iodata_list):
@@ -423,7 +434,9 @@ class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
             preds_binary = self.xgb_binary.predict(inputs)
 
         feat = BTFeatureExtractor.make_features_v2(field)
-        preds = self.xgb.predict(feat).reshape(nrows, ncols)
+        preds = self.xgb.predict(feat)
+        preds = self.target_encoder.inverse_transform(preds)
+        preds = preds.reshape(nrows, ncols)
         preds = preds.astype(int)  # .tolist()
         # result = repainter(preds).tolist()
         prediction_data = preds
