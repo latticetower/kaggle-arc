@@ -7,12 +7,12 @@ import rootutils
 
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
+import numpy as np
+
 from base.iodata import IOData
 from base.field import Field
 from predictors.basic import Predictor
 from predictors.basic import AvailableEqualShape
-
-import numpy as np
 
 
 def get_p1_p2(i, j, n, k, v, q1, q2):

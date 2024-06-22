@@ -9,7 +9,8 @@ root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True
 from xgboost import XGBClassifier
 from itertools import product
 import itertools
-from skimage.measure import label
+import skimage.measure as skmeasure
+from sklean.preprocessing import LabelEncoder
 import numpy as np
 
 from base.field import Field
@@ -215,7 +216,7 @@ class BTFeatureExtractor:
         nrows, ncols = field.shape
         # feat = np.zeros((nrows*ncols, nfeat))
         all_features = []
-        regions = [label(field.data == i) for i in range(10)]
+        regions = [skmeasure.label(field.data == i) for i in range(10)]
         cur_idx = 0
         for i in range(nrows):
             for j in range(ncols):
@@ -341,7 +342,7 @@ class BTFeatureExtractor:
 
         # feat = np.zeros((nrows*ncols, nfeat))
         all_features = []
-        regions = [label(field.data == i) for i in range(10)]
+        regions = [skmeasure.label(field.data == i) for i in range(10)]
         cur_idx = 0
         for i in range(nrows):
             for j in range(ncols):
@@ -525,6 +526,7 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
             objective="multi:softmax",
             num_class=10,
         )
+        self.target_encoder = LabelEncoder()
 
     def train(self, iodata_list):
         self.all_square = np.all(
@@ -548,7 +550,8 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
             all_square=self.all_square,
             features_maker=BTFeatureExtractor.make_features_v3,
         )
-        self.xgb.fit(feat, target, verbose=-1)
+        encoded_target = self.target_encoder.fit_transform(target)
+        self.xgb.fit(feat, encoded_target, verbose=0)
 
     def predict(self, field):
         if isinstance(field, IOData):
@@ -558,12 +561,13 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
         # repainter = Repaint(field.data)
         nrows, ncols = field.shape
         feat = BTFeatureExtractor.make_features_v3(field, all_square=self.all_square)
-        preds = self.xgb.predict(feat).reshape(nrows, ncols)
-        preds = preds.astype(int)  # .tolist()
+        encoded_predictions = self.xgb.predict(feat)
+        predictions = self.target_encoder.inverse_transform(encoded_predictions)
+        predictions = predictions.reshape(nrows, ncols).astype(int)  # .tolist()
         # preds = field.reconstruct(Field(preds))
         # preds = repainter(preds).tolist()
-        preds = Field(preds)
-        yield preds
+        predictions = Field(predictions)
+        yield predictions
 
     def __str__(self):
         return "BoostingTreePredictor()"
@@ -584,6 +588,7 @@ class BoostingTreePredictor2(Predictor):
         )  # currently not in use
         self.bgr_color = None
         self.simple_operation = ComplexSummarizeOperation()
+        self.op = None
 
     def is_available(self, iodata_list):
         all_sizes = set()
@@ -638,6 +643,8 @@ class BoostingTreePredictor2(Predictor):
                 return xs[0]
 
     def train(self, iodata_list):
+        if self.op is None:
+            raise Exception(f"{self.__class__.__name__} requires is_available call before training")
         all_samples = []
         for iodata in iodata_list:
             i, o = self.op.wrap(iodata)
@@ -753,6 +760,7 @@ class BoostingTreePredictor3(Predictor, AvailableEqualShape):
             objective="multi:softmax",
             num_class=10,
         )
+        self.target_encoder = LabelEncoder()
 
     def train(self, iodata_list):
         self.all_square = np.all(
@@ -776,8 +784,9 @@ class BoostingTreePredictor3(Predictor, AvailableEqualShape):
             all_square=self.all_square,
             features_maker=BTFeatureExtractor.make_features_v3,
         )
+        encoded_target = self.target_encoder.fit_transform(target)
         # print(feat.shape, target.shape)
-        self.xgb.fit(feat, target, verbose=-1)
+        self.xgb.fit(feat, target, verbose=0)
 
     def predict(self, field):
         if isinstance(field, IOData):
@@ -787,12 +796,13 @@ class BoostingTreePredictor3(Predictor, AvailableEqualShape):
         # repainter = Repaint(field.data)
         nrows, ncols = field.shape
         feat = BTFeatureExtractor.make_features_v3(field, all_square=self.all_square)
-        preds = self.xgb.predict(feat).reshape(nrows, ncols)
-        preds = preds.astype(int)  # .tolist()
+        encoded_predictions = self.xgb.predict(feat)
+        predictions = self.target_encoder.inverse_transform(encoded_predictions)
+        predictions = predictions.reshape(nrows, ncols).astype(int)  # .tolist()
         # preds = field.reconstruct(Field(preds))
         # preds = repainter(preds).tolist()
-        preds = Field(preds)
-        yield preds
+        predictions = Field(predictions)
+        yield predictions
 
     def __str__(self):
         return "BoostingTreePredictor3()"
