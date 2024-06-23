@@ -26,4 +26,4 @@ from predictors.graph_boosting_tree import (
 from predictors.decision_tree import AugmentedPredictor
 from predictors.subpattern import SubpatternMatcherPredictor
 from predictors.connector import PointConnectorPredictor
-from predictors.cf_combinator import WrappedCFPredictor
+# from predictors.cf_combinator import WrappedCFPredictor
