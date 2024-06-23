@@ -9,7 +9,7 @@ root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True
 from xgboost import XGBClassifier
 from itertools import product
 import itertools
-import skimage.measure as skmeasure
+import skimage.measure as sk_measure
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
@@ -21,6 +21,8 @@ from predictors.basic import *
 from operations.basic import Repaint
 from operations.reversible import *
 from operations.field2point import ComplexSummarizeOperation
+
+import predictors.availability_mixins as mixins
 
 
 class BTFeatureExtractor:
@@ -216,7 +218,7 @@ class BTFeatureExtractor:
         nrows, ncols = field.shape
         # feat = np.zeros((nrows*ncols, nfeat))
         all_features = []
-        regions = [skmeasure.label(field.data == i) for i in range(10)]
+        regions = [sk_measure.label(field.data == i) for i in range(10)]
         cur_idx = 0
         for i in range(nrows):
             for j in range(ncols):
@@ -342,7 +344,7 @@ class BTFeatureExtractor:
 
         # feat = np.zeros((nrows*ncols, nfeat))
         all_features = []
-        regions = [skmeasure.label(field.data == i) for i in range(10)]
+        regions = [sk_measure.label(field.data == i) for i in range(10)]
         cur_idx = 0
         for i in range(nrows):
             for j in range(ncols):
@@ -477,10 +479,8 @@ class BTFeatureExtractor:
             # output_field = output_field.data
 
             target_rows, target_cols = output_field.shape
-            if output_field.shape == (
-                1,
-                1,
-            ):  # and input_field.shape != output_field.shape:
+            if output_field.shape == (1, 1):  
+                # and input_field.shape != output_field.shape:
                 # print(input_field.shape)
                 # print(input_field)
                 output_field = increase2shape(output_field, input_field.shape)
@@ -498,9 +498,7 @@ class BTFeatureExtractor:
 
             feat.extend(features_maker(Field(input_field), all_square=all_square))
             target.extend(
-                np.array(output_field).reshape(
-                    -1,
-                )
+                np.array(output_field).reshape(-1)
             )
         return np.array(feat), np.array(target), 0
 
@@ -517,7 +515,7 @@ def get_augmented_iodata(i, o):
         yield Field(inp), Field(out)
 
 
-class BoostingTreePredictor(Predictor, AvailableEqualShape):
+class BoostingTreePredictor(Predictor, mixins.AvailableEqualShape):
     def __init__(self):
         self.xgb = XGBClassifier(
             n_estimators=100,
@@ -535,16 +533,16 @@ class BoostingTreePredictor(Predictor, AvailableEqualShape):
                 for iodata in iodata_list
             ]
         )
-        iodata_list_ = list(
-            itertools.chain(
-                *[
-                    get_augmented_iodata(
-                        iodata.input_field.data, iodata.output_field.data
-                    )
-                    for iodata in iodata_list
-                ]
-            )
-        )
+        # iodata_list_ = list(
+        #     itertools.chain(
+        #         *[
+        #             get_augmented_iodata(
+        #                 iodata.input_field.data, iodata.output_field.data
+        #             )
+        #             for iodata in iodata_list
+        #         ]
+        #     )
+        # )
         feat, target, _ = BTFeatureExtractor.get_features(
             iodata_list,
             all_square=self.all_square,
@@ -751,8 +749,9 @@ class BoostingTreePredictor2(Predictor):
         return "BoostingTreePredictor2()"
 
 
-class BoostingTreePredictor3(Predictor, AvailableEqualShape):
-    def __init__(self):
+class BoostingTreePredictor3(Predictor, mixins.AvailableEqualShapeAndLessThanNComponents):
+    def __init__(self, max_components=10):
+        self.max_components = max_components
         self.xgb = XGBClassifier(
             n_estimators=100,
             booster="dart",
@@ -762,6 +761,9 @@ class BoostingTreePredictor3(Predictor, AvailableEqualShape):
         )
         self.target_encoder = LabelEncoder()
 
+    def is_available(self, iodata_list):
+        return super().is_available(iodata_list, n_components=self.max_components)
+
     def train(self, iodata_list):
         self.all_square = np.all(
             [
@@ -769,16 +771,16 @@ class BoostingTreePredictor3(Predictor, AvailableEqualShape):
                 for iodata in iodata_list
             ]
         )
-        iodata_list_ = list(
-            itertools.chain(
-                *[
-                    get_augmented_iodata(
-                        iodata.input_field.data, iodata.output_field.data
-                    )
-                    for iodata in iodata_list
-                ]
-            )
-        )
+        # iodata_list_ = list(
+        #     itertools.chain(
+        #         *[
+        #             get_augmented_iodata(
+        #                 iodata.input_field.data, iodata.output_field.data
+        #             )
+        #             for iodata in iodata_list
+        #         ]
+        #     )
+        # )
         feat, target, _ = BTFeatureExtractor.get_features(
             iodata_list,
             all_square=self.all_square,

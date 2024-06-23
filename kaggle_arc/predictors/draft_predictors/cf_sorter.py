@@ -3,7 +3,7 @@ import rootutils
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 from predictors.basic import Predictor
-
+import predictors.availability_mixins as mixins
 
 def to_tuple(field):
     return tuple([x for line in field.data for x in line])

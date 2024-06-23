@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from itertools import product
 
-from skimage.measure import label
+import skimage.measure as sk_measure
 
 from base.iodata import *
 from base.field import *
@@ -300,7 +300,7 @@ def make_conv_features2(field, nfeat=13, local_neighb=5):
 
     feat = np.asarray(all_features)
     feat = np.concatenate(
-        [feat, np.stack([label(field.data == i) for i in range(10)], -1)], -1
+        [feat, np.stack([sk_measure.label(field.data == i) for i in range(10)], -1)], -1
     )
     masks = []
     for c in range(10):
@@ -428,7 +428,7 @@ def train_on_sample(sample, cutoff=0.5, debug=False, infeatures=70):
     return scores, model, val_results
 
 
-class ConvolutionPredictor(Predictor, AvailableEqualShape):
+class ConvolutionPredictor(Predictor, mixins.AvailableEqualShape):
     def __init__(self, nepochs=40, loss="mse"):
         # self.xgb =  XGBClassifier(n_estimators=25*2, booster="dart", n_jobs=-1)
         if loss == "mse":
@@ -518,7 +518,7 @@ class ConvolutionPredictor(Predictor, AvailableEqualShape):
         return "ConvolutionPredictor()"
 
 
-class Convolution2PointPredictor(Predictor, AvailableShape2PointOrConstColor):
+class Convolution2PointPredictor(Predictor, mixins.AvailableShape2PointOrConstColor):
     def __init__(self, nepochs=40, loss="mse"):
         # self.xgb =  XGBClassifier(n_estimators=25*2, booster="dart", n_jobs=-1)
         if loss == "mse":

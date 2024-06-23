@@ -8,6 +8,7 @@ from operations.reversible import *
 
 from predictors.basic import *  # BTFeatureExtractor, BoostingTreePredictor2
 from predictors.boosting_tree import *
+import predictors.availability_mixins as mixins
 
 
 class SubpatternMatcher:

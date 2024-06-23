@@ -15,10 +15,11 @@ from predictors.boosting_tree import BoostingTreePredictor
 
 from operations.basic import Repaint
 from operations.resizing import Repeater, Resizer, Fractal, Mirror
-from utils import check_if_can_be_mirrored
+# from utils import check_if_can_be_mirrored
+import predictors.availability_mixins as mixins
 
 
-class RepeatingPredictor(Predictor, AvailableWithIntMultiplier):
+class RepeatingPredictor(Predictor, mixins.AvailableWithIntMultiplier):
     def __init__(self, args=[], kwargs=dict()):
         # self.predictor = predictor_class(*args, **kwargs)
         pass
@@ -40,7 +41,7 @@ class RepeatingPredictor(Predictor, AvailableWithIntMultiplier):
         return f"RepeatingPredictor(m1={self.m1}, m2={self.m2})"
 
 
-class MirrorPredictor(Predictor, AvailableMirror):
+class MirrorPredictor(Predictor, mixins.AvailableMirror):
     def __init__(self, predictor=BoostingTreePredictor):
         self.predictor = predictor()
 
@@ -69,7 +70,7 @@ class MirrorPredictor(Predictor, AvailableMirror):
         return f"ResizingPredictor(m1={self.m1}, m2={self.m2})"
 
 
-class ResizingPredictor(Predictor, AvailableWithIntMultiplier):
+class ResizingPredictor(Predictor, mixins.AvailableWithIntMultiplier):
     def __init__(self):
         pass
 
@@ -89,7 +90,7 @@ class ResizingPredictor(Predictor, AvailableWithIntMultiplier):
         return f"ResizingPredictor(m1={self.m1}, m2={self.m2})"
 
 
-class FractalPredictor(Predictor, AvailableWithIntMultiplier):
+class FractalPredictor(Predictor, mixins.AvailableWithIntMultiplier):
     def __init__(self):
         pass
 

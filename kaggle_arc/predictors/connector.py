@@ -12,6 +12,7 @@ from base.field import *
 from base.iodata import *
 from utils import *
 from constants import *
+import predictors.availability_mixins as mixins
 
 
 class Colorizer:
@@ -731,7 +732,7 @@ class PointConnectorUtils:
         return pc
 
 
-class PointConnectorPredictor(Predictor, AvailableAll):
+class PointConnectorPredictor(Predictor, mixins.AvailableAll):
     def __init__(
         self, multiplier=1, kernel_size=1, debug=False, use_recursive_lines=False
     ):

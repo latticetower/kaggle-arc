@@ -7,8 +7,10 @@ root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True
 import torch
 from torch import nn
 
-from predictors.basic import Predictor, AvailableEqualShape
 from base.field import *
+import predictors.availability_mixins as mixins
+from predictors.basic import Predictor
+from base.iodata import IOData
 
 
 class CAModel(nn.Module):
@@ -71,7 +73,7 @@ def solve_task(iodata_list, max_steps=10, num_epochs=100, device="cpu"):
     return model, num_steps, losses
 
 
-class CAMPredictor(Predictor, AvailableEqualShape):
+class CAMPredictor(Predictor, mixins.AvailableEqualShape):
     def __init__(self, max_steps=10, num_epochs=100):
         self.max_steps = max_steps
         self.num_epochs = num_epochs
@@ -144,10 +146,9 @@ class CAMPredictor(Predictor, AvailableEqualShape):
         yield Field(pred)
 
 
-from predictors.basic import Predictor, AvailableEqualShape
 
 
-class MoverPredictor(Predictor, AvailableEqualShape):
+class MoverPredictor(Predictor, mixins.AvailableEqualShape):
     def __init__(self):
         pass
 

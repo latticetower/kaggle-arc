@@ -3,7 +3,8 @@ import rootutils
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
 from predictors.basic import Predictor
-
+import predictors.availability_mixins as mixins
+from base.iodata import IOData
 
 class FillerCFPredictor(Predictor):
     def __init__(self):

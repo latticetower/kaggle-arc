@@ -12,8 +12,7 @@ import numpy as np
 from base.iodata import IOData
 from base.field import Field
 from predictors.basic import Predictor
-from predictors.basic import AvailableEqualShape
-
+import predictors.availability_mixins as mixins
 
 def get_p1_p2(i, j, n, k, v, q1, q2):
     if v == 0 or v == 2:
@@ -27,7 +26,7 @@ def get_p1_p2(i, j, n, k, v, q1, q2):
     return p1, p2
 
 
-class ColorCountingPredictor(Predictor, AvailableEqualShape):
+class ColorCountingPredictor(Predictor, mixins.AvailableEqualShape):
     def __init__(self):
         self.best_Dict = None
         self.best_Q1 = -1

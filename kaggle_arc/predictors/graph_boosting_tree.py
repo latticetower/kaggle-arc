@@ -11,10 +11,11 @@ import numpy as np
 from xgboost import XGBClassifier
 from sklearn.preprocessing import LabelEncoder
 
-from predictors.basic import Predictor, AvailableEqualShape
+from predictors.basic import Predictor
 from predictors.boosting_tree import BTFeatureExtractor
 from base.field import Field
 from base.iodata import IOData
+import predictors.availability_mixins as mixins
 
 
 class GraphFeatureExtractor:
@@ -364,11 +365,14 @@ class GraphBoostingTreePredictor2(Predictor):
         return "GraphBoostingTreePredictor2()"
 
 
-class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
-    def __init__(self, n_estimators=100):
+class GraphBoostingTreePredictor3(Predictor, mixins.AvailableEqualShapeAndLessThanNComponents):
+    def __init__(self, n_estimators=100, max_components=10):
         # self.xgb_binary =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1)
         # self.xgb =  XGBClassifier(n_estimators=n_estimators, booster="dart", n_jobs=-1,
         #    objective="multi:softmax", num_class=10)
+        self.n_estimators = n_estimators
+        self.max_components = max_components
+
         self.xgb_binary = XGBClassifier(
             n_estimators=n_estimators, booster="dart", n_jobs=-1
         )
@@ -381,6 +385,9 @@ class GraphBoostingTreePredictor3(Predictor, AvailableEqualShape):
         )
         self.use_zeros = True
         self.target_encoder = LabelEncoder()
+
+    def is_available(self, iodata_list):
+        return super().is_available(iodata_list, n_components=self.max_components)
 
     def _make_train_binary_features(self, iodata_list):
         train_x_binary, train_y_binary = list(

@@ -7,7 +7,7 @@ from itertools import islice
 
 from base.field import Field
 from predictors.basic import Predictor
-from predictors.basic import AvailableAll
+# from predictors.basic import AvailableAll
 from predictors.basic import IdPredictor, ZerosPredictor, ConstPredictor, FillPredictor
 
 from predictors.color_counting import ColorCountingPredictor
@@ -33,9 +33,10 @@ from predictors.decision_tree import AugmentedPredictor
 from predictors.subpattern import SubpatternMatcherPredictor
 from predictors.field2point import SimpleSummarizePredictor
 from predictors.connector import *
+import predictors.availability_mixins as mixins
 
 
-class ComplexPredictor(Predictor, AvailableAll):
+class ComplexPredictor(Predictor, mixins.AvailableAll):
     def __init__(self, predictor_classes, verbose=False):
         self.predictors = []
         for data in predictor_classes:

@@ -24,6 +24,7 @@ import math
 
 
 from predictors.basic import *
+import predictors.availability_mixins as mixins
 
 
 class Augmenter:
@@ -245,7 +246,7 @@ class Augmenter:
         return X, Y
 
 
-class AugmentedPredictor(Predictor, AvailableEqualShapeAndMaxNColors):
+class AugmentedPredictor(Predictor, mixins.AvailableEqualShapeAndMaxNColors):
     def __init__(self):
         # self.value = value
         # self.multiplier = multiplier
